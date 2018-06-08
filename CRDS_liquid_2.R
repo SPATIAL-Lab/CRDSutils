@@ -367,7 +367,7 @@ review.data <- function(data){
 ##              already exist in the database                      ##
 #####################################################################
 
-db <- function(data){
+db <- function(data, analyst){
   ## data is a list of dataframes such as that created by the 
   ## process.crds function that includes qa.report & samples.summary
 
@@ -409,7 +409,7 @@ db <- function(data){
     Run_date, Memory1_O, Memory2_O, Memory3_O, Memory4_O, Drift1_O, 
     Slope_O, Intercept_O, Memory1_H, Memory2_H, Memory3_H, Memory4_H, 
     Drift1_H, Slope_H, Intercept_H, PT_O_ave, PT_H_ave, PT_O_sd, PT_H_sd, 
-    PT_count, Ignore_run) 
+    PT_count, Ignore_run, Analyst) 
                         VALUES('",Instrument,"','", Run_date,"',",
                         qa$value[3], ",", qa$value[4], ",", 
                         qa$value[5], ",", qa$value[6],",",
@@ -420,7 +420,8 @@ db <- function(data){
                         qa$value[15], ",", qa$value[16], ",",
                         qa$value[17], ",", qa$value[18],",",
                         qa$value[19], ",", qa$value[20], ",",
-                        qa$value[21], ",", qa$value[22], ")"))
+                        qa$value[21], ",", qa$value[22], ", '",
+                        analyst, "')"))
   ## writes data to the Parameters_table in the database
   n2 = sqlQuery(channel, "SELECT COUNT(*) FROM Parameters_table")
   print(paste(n2-n1, "parameter set imported"))

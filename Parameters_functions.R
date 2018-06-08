@@ -73,5 +73,11 @@ par.query = function(criteria){
   par.sum[3,1:16] = par.sum[2,1:16]/par.sum[1,1:16]
   rownames(par.sum) = c("Mean", "SD", "RSD")
   View(par.sum)
+  
+  if(criteria$ignore == 2){
+    good = nrow(par.good)/nrow(par)
+    goodtxt = paste("Total number of runs =", nrow(par), "| % good =", round(good*100, 1))
+    goodtxt
+  }
 
 }

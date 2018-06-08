@@ -24,6 +24,8 @@ reports <- function(ID2, date, job, runs= FALSE, report,
   ##         Find unique runs for the group of samples         ##
   ###############################################################
   
+  date = as.Date(date, "%m/%d/%Y")
+  
   if(ignore == TRUE){
     r = unique(sqlQuery(channel,paste0("SELECT WI_Analysis_Instrument, 
         WI_Analysis_Date FROM Water_Isotope_Data WHERE Sample_ID LIKE '", ID2, "%' 
@@ -263,32 +265,31 @@ reports <- function(ID2, date, job, runs= FALSE, report,
   #################################################################
   
   if(report == "neon"){
-    shipping <- sqlQuery(channel,
-                         paste0("SELECT * FROM NEON_shipping"))
+    shipping <- sqlQuery(channel, "SELECT * FROM NEON_shipping")
     ## creates a table with the data from the NEON_shipping table 
     ## in the database
+    
+    qa = sqlQuery(channel, "SELECT Instrument, Run_date, Analyst FROM Parameters_table")
+    ## grab info needed from run parameters DB table
     
     data_n <- merge(data,shipping,by.x="Sample_ID",by.y="sampleID")
     ## merges data with shipping to add the shipping information 
     ## to the table
     
-    data_n <- data.frame(siteID = data_n$siteID, 
-                         dateCollected = format(as.Date(
-                           data_n$dateCollected), "%Y-%m-%d"),  
-                         sampleID = data_n$Sample_ID,
+    data_n$WI_Analysis_Date = as.Date(data_n$WI_Analysis_Date, "%m/%d/%Y")
+    data_n = merge(data_n, qa, by.x=c("WI_Analysis_Instrument", "WI_Analysis_Date"), 
+                   by.y=c("Instrument", "Run_date"))
+    
+    data_n <- data.frame(sampleID = data_n$Sample_ID,
                          instrumentSN = data_n$WI_Analysis_Instrument,
-                         dateProcessed = format(as.Date(
-                           data_n$WI_Analysis_Date, "%m/%d/%Y"), "%Y-%m-%d"), 
-                     d18O = data_n$d18O, d2H = data_n$d2H,	
-                     d18O_sd = data_n$d18O_Analytical_SD, d2H_sd = data_n$d2H_Analytical_SD,
-                      ignore = data_n$WI_Analysis_Ignore, 
-                     analyzingLabName = "University of Utah SIRFER",
-                     shipmentID = data_n$shipmentID, 
-                     shipmentCondition = data_n$shipmentCondition,
-                     receivedDate = format(as.Date(data_n$receivedDate), 
-                                           "%Y-%m-%d"), 
-                     receivedBy = data_n$receivedBy,
-                     remarks = gsub("\"", "\'", data_n$receivedRemarks) )
+                         dateProcessed = data_n$WI_Analysis_Date,
+                         d18O = data_n$d18O, d2H = data_n$d2H,
+                         d18O_sd = data_n$d18O_Analytical_SD, d2H_sd = data_n$d2H_Analytical_SD,
+                         ignore = data_n$WI_Analysis_Ignore,
+                         analyzingLabName = "University of Utah SIRFER",
+                         analyst = data_n$Analyst,
+                         sampleCondition = data_n$shipmentCondition,
+                         remarks = gsub("\"", "\'", data_n$receivedRemarks) )
     ## creates a dataframe with only the desired columns, adds one
     ## for analyzingLabName, reformats the dates & renames the columns
 

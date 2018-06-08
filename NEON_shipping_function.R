@@ -20,6 +20,9 @@ neon_shipment <- function(fname){
   if(class(samples$Date.Collected)=="numeric"){
       samples$Date.Collected <- as.Date(as.character(samples$Date.Collected),"%Y%m%d") 
   }
+  if(class(samples$Date.Collected)=="factor"){
+    samples$Date.Collected <- as.Date(as.numeric(levels(samples$Date.Collected))[samples$Date.Collected], origin="1899-12-30") 
+  }
   #formats the collection date field as a date (required to enter into database)
   
   if(class(samples$receivedDate)=="numeric"){
@@ -27,9 +30,9 @@ neon_shipment <- function(fname){
   }
   #formats the received date as a date
   
-  existing = samples[0,]
+  existing = samples[0,"Sample.ID"]
   for(i in 1:nrow(samples)){
-    existing <- rbind(existing, sqlQuery(channel, paste0("SELECT * FROM NEON_shipping 
+    existing <- rbind(existing, sqlQuery(channel, paste0("SELECT SampleID FROM NEON_shipping 
                WHERE sampleID = '", samples$Sample.ID[i], "'")))
   }
   if(nrow(existing)>0){
