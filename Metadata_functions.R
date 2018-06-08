@@ -19,7 +19,7 @@ post.metadata = function(fname, newproj){
   library(readxl)
   library(RODBC)
   channel = odbcConnect("WIDB")
- 
+  Sys.setenv(TZ= "GMT")
   
   #####New project function
   if(newproj == "Y"){
@@ -134,7 +134,6 @@ post.metadata = function(fname, newproj){
           dupIDs = rbind(dupIDs, as.character(duprow$Sample_ID))
         } else {
           #find and replace apostrophes
-          
           for(j in 13:ncol(tmpdat)){tmpdat[i,j] = gsub("'", "_", tmpdat[i,j])}
           
           #set Project ID if requested
