@@ -1,9 +1,11 @@
-
-
 #1) set values here
-setwd("C:/Users/gjbowen/Dropbox/Bowen_Lab/Sample_metadata/")                 ### Annie Desktop
-fname = "180607_GJBMisc.xlsx"        ### name of data file, must use Spatial_WI template format
-newproj = "N"                       ### set to "Y" if you want to auto-assign a new project ID, "N" otherwise
+setwd("C:/Users/gjbowen/Dropbox/Bowen_Lab/Sample_metadata/test/")                 
+
+### name of excel data file in template format or "" for csv from iPhone
+fname = "test.xlsx"        
+
+### set to "Y" if you want to auto-assign a new project ID, "N" otherwise
+newproj = "N"     
 
 #2) run to compile functions
 source("C:/Users/gjbowen/Dropbox/Bowen_Lab/R_scripts_active/Metadata_functions.R")

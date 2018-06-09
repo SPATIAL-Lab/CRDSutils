@@ -20,6 +20,14 @@ post.metadata = function(fname, newproj){
   library(RODBC)
   channel = odbcConnect("WIDB")
   Sys.setenv(TZ= "GMT")
+  if(fname == ""){
+    projectFile = "Projects.csv"
+    siteFile = "Sites.csv"
+    samplesFile = "Samples.csv"
+    csvImport = 1
+  } else {
+    csvImport = 0
+  }
   
   #####New project function
   if(newproj == "Y"){
@@ -30,25 +38,39 @@ post.metadata = function(fname, newproj){
     for(i in 1:pad){nextproj = paste0("0",nextproj)}
   }
   
-  #####Check and load Sites data
+  #####Figure out what needs to be imported
   SitesYN = T
   SamplesYN = T
   ProjectsYN = T
   AnalysisYN = T
   ClimateYN = T
+  if(csvImport){
+    if(!file.exists(siteFile)) SitesYN = F
+    if(!file.exists(samplesFile)) SamplesYN = F
+    if(!file.exists(projectFile)) ProjectsYN = F
+    AnalysisYN = F
+    ClimateYN = F
+  }
   
+  #####Check and load Sites data
   if(SitesYN){
-    tmpdat = read_excel(fname, sheet="Sites", col_names = TRUE)
+    if(csvImport){
+      tmpdat = read.csv(siteFile, colClasses = c("character", "character", "numeric",
+                                                 "numeric", "numeric", "character",
+                                                 "character", "character", "character",
+                                                 "character"), encoding = "UTF-8")
+      colnames(tmpdat)[1] = "Site_ID"
+    } else {
+      tmpdat = read_excel(fname, sheet="Sites", col_names = TRUE, 
+                          col_types = c("text", "text", "numeric", "numeric", "numeric",
+                                        "text", "text", "text", "text", "text"))
+    }
+    
+    #Set up accounting
     dups=0
     dupIDs="Duplicate IDs"
     err=0
     good=0
-    
-    #force factors to character vectors
-    tmpdat$Site_Name = as.character(tmpdat$Site_Name)
-    tmpdat$Address = as.character(tmpdat$Address)
-    tmpdat$City = as.character(tmpdat$City)
-    tmpdat$Site_Comments = as.character(tmpdat$Site_Comments)
     
     if(nrow(tmpdat)>0){
       for(i in 1:nrow(tmpdat)){
@@ -67,6 +89,7 @@ post.metadata = function(fname, newproj){
         } else {
           #find and replace apostrophes
           for(j in 2:ncol(tmpdat)){tmpdat[i,j] = gsub("'", "_", tmpdat[i,j])}
+          for(j in 2:ncol(tmpdat)){tmpdat[i,j] = gsub("\u2013", "-", tmpdat[i,j])}
           
           #create data string
           
@@ -94,24 +117,27 @@ post.metadata = function(fname, newproj){
   
   #####Check and load Samples data
   if(SamplesYN){
-    #tmpdat = read_excel(fname, sheet="Samples", col_names = TRUE, col_types = c("text", "text", "text", "text", 
-#                                                                                 "date", "numeric", "date", "numeric", 
-#                                                                                 "numeric", "text", "text", "numeric",    
-#                                                                                 "text", "numeric", "text","text"))
-    #
-    tmpdat = read_excel(fname, sheet="Samples", col_names = TRUE)
+    if(csvImport){
+      tmpdat = read.csv(samplesFile, colClasses = c("character", "character", "character",
+                                                    "character", "character", "numeric", 
+                                                    "character", "numeric", "numeric", 
+                                                    "character", "character", "numeric", 
+                                                    "character", "integer", "character", 
+                                                    "character"),
+                        stringsAsFactors = F, encoding = "UTF-8")
+    } else {
+      tmpdat = read_excel(fname, sheet="Samples", col_names = TRUE,
+                          col_types = c("text", "text", "text", "text", "guess",
+                                        "numeric", "guess", "numeric", "numeric",
+                                        "text", "text", "numeric", "text",
+                                        "numeric", "text", "text"))
+    }
+    
+    #Set up accounting
     dups=0
     dupIDs="Duplicate IDs"
     err=0
     good=0
-    
-    #force factors to character vectors
-
-    tmpdat$Sample_ID = as.character(tmpdat$Sample_ID)
-    tmpdat$Sample_ID_2 = as.character(tmpdat$Sample_ID_2)
-    tmpdat$Collector_type = as.character(tmpdat$Collector_type)
-    tmpdat$Sample_Source = as.character(tmpdat$Sample_Source)
-    tmpdat$Sample_Comments = as.character(tmpdat$Sample_Comments)
     
     if(nrow(tmpdat) > 0){
       for(i in 1:nrow(tmpdat)){
@@ -125,7 +151,9 @@ post.metadata = function(fname, newproj){
         }
   
         #concatenate IDs if ID2 included
-        if(is.na(tmpdat$Sample_ID_2[i])){}else{tmpdat$Sample_ID[i] = paste0(tmpdat$Sample_ID_2[i], "_", tmpdat$Sample_ID[i])}
+        if(!is.na(tmpdat$Sample_ID_2[i]) && tmpdat$Sample_ID_2[i] != ""){
+          tmpdat$Sample_ID[i] = paste0(tmpdat$Sample_ID_2[i], "_", tmpdat$Sample_ID[i])
+        }
         
         #Check for duplicate row
         duprow = sqlQuery(channel, paste0("SELECT Sample_ID FROM Samples WHERE Sample_ID = '", tmpdat$Sample_ID[i], "'"))
@@ -133,14 +161,35 @@ post.metadata = function(fname, newproj){
           dups = dups+1
           dupIDs = rbind(dupIDs, as.character(duprow$Sample_ID))
         } else {
-          #find and replace apostrophes
-          for(j in 13:ncol(tmpdat)){tmpdat[i,j] = gsub("'", "_", tmpdat[i,j])}
+          #find and replace apostrophes and em dashes
+          for(j in c(10,11,13,15)){tmpdat[i,j] = gsub("'", "_", tmpdat[i,j])}
+          for(j in c(10,11,13,15)){tmpdat[i,j] = gsub("\u2013", "-", tmpdat[i,j])}
+          
+          #fix date formats from iPhone app, first Start
+          if(is.na(tmpdat$Start_Date[i])){
+            startDate = ""
+          } else if(csvImport) {
+            startDate = strptime(tmpdat$Start_Date[i], "%m/%d/%y %I:%M %p")
+            startDate = as.POSIXct(startDate)
+          } else {
+            startDate = tmpdat$Start_Date[i]
+          }
+          
+          #then Collection
+          if(is.na(tmpdat$Collection_Date[i])){
+            collectionDate = ""
+          } else if(csvImport) {
+            collectionDate = strptime(tmpdat$Collection_Date[i], "%m/%d/%y %I:%M %p")
+            collectionDate = as.POSIXct(collectionDate)
+          } else {
+            collectionDate = tmpdat$Collection_Date[i]
+          }
           
           #set Project ID if requested
           if(newproj=="Y"){tmpdat$Project_ID[i]=nextproj}
           #create data string
-          dat = paste0("('",tmpdat$Sample_ID[i],"','",tmpdat$Sample_ID_2[i],"','",tmpdat$Site_ID[i],"','",tmpdat$Type[i],"','",tmpdat$Start_Date[i],"','",
-                       tmpdat$Start_Time_Zone[i],"','", tmpdat$Collection_Date[i],"','", tmpdat$Collection_Time_Zone[i], "','",
+          dat = paste0("('",tmpdat$Sample_ID[i],"','",tmpdat$Sample_ID_2[i],"','",tmpdat$Site_ID[i],"','",tmpdat$Type[i],"','",startDate,"','",
+                       tmpdat$Start_Time_Zone[i],"','", collectionDate,"','", tmpdat$Collection_Time_Zone[i], "','",
                        tmpdat$Sample_Volume_ml[i],"','",tmpdat$Collector_type[i],"','",
                        tmpdat$Phase[i],"',",tmpdat$Depth_meters[i],",'",tmpdat$Sample_Source[i],"',",
                        tmpdat$Sample_Ignore[i],",'",tmpdat$Sample_Comments[i],"','",tmpdat$Project_ID[i],"')")
@@ -148,6 +197,7 @@ post.metadata = function(fname, newproj){
           #SQL style Nulls
           dat = gsub("'NA'","NULL",dat)
           dat = gsub("NA","NULL",dat)
+          dat = gsub("''", "NULL", dat)
 
           sqlQuery(channel, paste0("INSERT INTO Samples (Sample_ID,Sample_ID_2,Site_ID,Type,Start_Date,Start_Time_Zone,Collection_Date,Collection_Time_Zone,Sample_Volume_ml,Collector_type,Phase,Depth_meters,Sample_Source,Sample_Ignore,Sample_Comments,Project_ID) VALUES ",
                                    dat))
@@ -164,6 +214,8 @@ post.metadata = function(fname, newproj){
   #####Check and load Water Isotope data
   if(AnalysisYN){
     tmpdat = read_excel(fname, sheet="Water_Isotope_Data", col_names =TRUE)
+    
+    #Set up accounting
     dups=0
     dupIDs="Duplicate IDs"
     err=0
@@ -221,8 +273,9 @@ post.metadata = function(fname, newproj){
   }
   
   if(ClimateYN){
-    
     tmpdat = read_excel(fname, sheet="Climate_Data", col_names =TRUE)
+    
+    #Setu up accounting
     dups=0
     dupIDs="Duplicate IDs"
     err=0
@@ -275,11 +328,22 @@ post.metadata = function(fname, newproj){
   }
   #####Check and load Projects data
   if(ProjectsYN){
-    tmpdat = read_excel(fname, sheet="Projects", col_names = TRUE, na = "")
+    if (csvImport){
+      tmpdat = read.csv(projectFile, colClasses = c("character", "character", "character",
+                                           "character", "character", "character",
+                                           "integer"), encoding = "UTF-8")
+    } else {
+      tmpdat = read_excel(fname, sheet="Projects", col_names = TRUE, na = "",
+                          col_types = c("text", "text", "text", "text", "text",
+                                        "text", "numeric"))
+    }
+    
+    #Set up accounting
     dups=0
     dupIDs="Duplicate IDs"
     err=0
     good=0
+    
     if(nrow(tmpdat)>0){
       for(i in 1:nrow(tmpdat)){
         #Check proprietary, set to yes if missing
