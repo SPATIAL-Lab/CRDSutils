@@ -1,8 +1,8 @@
 #1) set values here
-setwd("C:/Users/gjbowen/Dropbox/Bowen_Lab/Sample_metadata/test/")                 
+setwd("C:/Users/gjbowen/Dropbox/Bowen_Lab/Sample_metadata/SSC-18-4/")                 
 
 ### name of excel data file in template format or "" for csv from iPhone
-fname = "test.xlsx"        
+fname = ""        
 
 ### set to "Y" if you want to auto-assign a new project ID, "N" otherwise
 newproj = "N"     
