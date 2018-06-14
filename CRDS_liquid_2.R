@@ -432,7 +432,13 @@ db <- function(data, analyst){
   s$Ignore <- ifelse(s$ignore_run == 1 | s$ignore_sample == 1, 1, 0)
   ## creates a single column that determines whether a sample should be ignored
   
-  s$Sample_ID = paste0(s$ID2, "_", s$ID)
+  for (i in 1:nrow(s)){
+    if(!is.na(s$ID2[i]) && s$ID2[i] != ""){
+      s$Sample_ID[i] = paste0(s$ID2[i], "_", s$ID[i])
+    } else {
+      s$Sample_ID[i] = as.character(s$ID[i])
+    }
+  }
   ## creates a single column that stores composite ID
   
   existing = sqlQuery(channel, "SELECT * FROM Water_Isotope_Data WHERE Sample_ID = NULL")
