@@ -169,8 +169,15 @@ post.metadata = function(fname, newproj){
           if(is.na(tmpdat$Start_Date[i])){
             startDate = ""
           } else if(csvImport) {
-            startDate = strptime(tmpdat$Start_Date[i], "%m/%d/%y %I:%M %p")
-            startDate = as.POSIXct(startDate)
+            dstr = tmpdat$Start_Date[i]
+            endchar = substring(dstr, nchar(dstr), nchar(dstr))
+            if(is.na(as.integer(endchar))){
+              startDate = strptime(tmpdat$Start_Date[i], "%m/%d/%y %I:%M %p")
+              startDate = as.POSIXct(startDate)
+            } else {
+              startDate = strptime(tmpdat$Start_Date[i], "%m/%d/%y %H:%M")
+              startDate = as.POSIXct(startDate) 
+            }
           } else {
             startDate = tmpdat$Start_Date[i]
           }
@@ -179,8 +186,15 @@ post.metadata = function(fname, newproj){
           if(is.na(tmpdat$Collection_Date[i])){
             collectionDate = ""
           } else if(csvImport) {
-            collectionDate = strptime(tmpdat$Collection_Date[i], "%m/%d/%y %I:%M %p")
-            collectionDate = as.POSIXct(collectionDate)
+            dstr = tmpdat$Collection_Date[i]
+            endchar = substring(dstr, nchar(dstr), nchar(dstr))
+            if(is.na(as.integer(endchar))){
+              collectionDate = strptime(tmpdat$Collection_Date[i], "%m/%d/%y %I:%M %p")
+              collectionDate = as.POSIXct(collectionDate) 
+            } else {
+              collectionDate = strptime(tmpdat$Collection_Date[i], "%m/%d/%y %H:%M")
+              collectionDate = as.POSIXct(collectionDate) 
+            }
           } else {
             collectionDate = tmpdat$Collection_Date[i]
           }
