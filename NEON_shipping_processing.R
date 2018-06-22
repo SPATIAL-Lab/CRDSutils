@@ -27,6 +27,41 @@ neon_shipment("")
 #####################################################################
 
 #####################################################################
+## 06/21/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/in_development/NEON_shipping_function_indev.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D0920180612104001825.csv")
+#####################################################################
+
+#####################################################################
+## 06/21/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/in_development/NEON_shipping_function_indev.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D0120180611115723597.csv")
+#####################################################################
+
+#####################################################################
+## 06/21/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/in_development/NEON_shipping_function_indev.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D1220180612154527275.csv")
+#####################################################################
+
+#####################################################################
+## 06/21/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/in_development/NEON_shipping_function_indev.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D0720180613061544217.csv")
+#####################################################################
+
+#####################################################################
+## 06/21/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/in_development/NEON_shipping_function_indev.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D0520180606113303239.csv")
+#####################################################################
+
+#####################################################################
 ## 06/4/18
 setwd("C:/Users/u0939524/Dropbox")
 source("Bowen_lab/R_scripts_active/in_development/NEON_shipping_function_indev.R")

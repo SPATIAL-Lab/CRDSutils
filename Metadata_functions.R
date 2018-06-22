@@ -88,8 +88,11 @@ post.metadata = function(fname, newproj){
           dupIDs = rbind(dupIDs, as.character(duprow$Site_ID))
         } else {
           #find and replace apostrophes
-          for(j in 2:ncol(tmpdat)){tmpdat[i,j] = gsub("'", "_", tmpdat[i,j])}
-          for(j in 2:ncol(tmpdat)){tmpdat[i,j] = gsub("\u2013", "-", tmpdat[i,j])}
+          for(j in 2:ncol(tmpdat)){
+            tmpdat[i,j] = gsub("'", "_", tmpdat[i,j])
+            tmpdat[i,j] = gsub("\u2013", "-", tmpdat[i,j])
+            if(tmpdat[i,j] == " ") {tmpdat[i,j] = "NULL"}
+          }
           
           #create data string
           
