@@ -1,8 +1,7 @@
 #####################################################################
 ####            NEON shipping data processing                    ####
 ####           This file is used to upload NEON                  ####
-####          shipping data to the WaterDB Access                ####
-####          database                                           ####
+####          shipping data to the WiDB database                 ####
 #####################################################################
 
 #####################################################################                                                        ##

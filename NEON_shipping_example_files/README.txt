@@ -6,4 +6,5 @@ Location of Input files
 Dropbox\Bowen_Lab\Data_reports\NEON\Shipping
 
 Location of Output files
-Dropbox\Bowen_Lab\WaterDB.accdb (NEON_shipping table)
+wiDB (NEON_shipping table)
+Dropbox\Bowen_Lab\Data_reports\NEON\Shipping (receipt form .csv)
