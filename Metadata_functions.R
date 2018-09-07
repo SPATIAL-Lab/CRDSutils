@@ -85,13 +85,15 @@ post.metadata = function(fname, newproj){
         duprow = sqlQuery(channel, paste0("SELECT SITE_ID FROM Sites WHERE Site_ID = '", tmpdat$Site_ID[i], "'"))
         if(nrow(duprow) > 0) {
           dups = dups+1
-          dupIDs = rbind(dupIDs, as.character(duprow$Site_ID))
+          dupIDs = rbind(dupIDs, as.character(duprow$SITE_ID))
         } else {
           #find and replace apostrophes
           for(j in 2:ncol(tmpdat)){
             tmpdat[i,j] = gsub("'", "_", tmpdat[i,j])
             tmpdat[i,j] = gsub("\u2013", "-", tmpdat[i,j])
-            if(tmpdat[i,j] == " ") {tmpdat[i,j] = "NULL"}
+            if(!is.na(tmpdat[i,j])){
+              if(tmpdat[i,j] == " ") {tmpdat[i,j] = "NULL"}
+            }
           }
           
           #create data string

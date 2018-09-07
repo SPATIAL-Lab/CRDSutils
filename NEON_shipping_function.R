@@ -37,23 +37,8 @@ neon_shipment <- function(fname){
     }
     samples$collectdate <- as.Date(samples$collectdate, dform) 
   }
-  
-  #find existing data in DB
-  existing = samples[0,"sampleID"]
-  for(i in 1:ns){
-    existing <- rbind(existing, sqlQuery(channel, paste0("SELECT SampleID FROM NEON_shipping 
-                                                         WHERE SampleID = '", samples$sampleID[i], "'")))   ###is SampleID caps in DB?
-  }
-  if(nrow(existing)>0){
-    vdupes = readline(prompt="Duplicate entries found in database. View (Y/N)?")
-    if(vdupes!="N") print(existing)
-    ddupes = readline(prompt="Delete (Y/N)?")
-    if(ddupes=="Y"){ 
-      for(i in 1:ns){
-        sqlQuery(channel, paste0("DELETE FROM NEON_shipping WHERE SampleID = '", samples$sampleID[i], "'"))
-      }
-    } else {stop("data already present in database, no new data imported")}
-  }
+
+  find.dupes(samples$sampleID, ns, channel)
   
   #add received date to samples
   today = as.Date(date(), "%a %b %d %H:%M:%S %Y")
@@ -75,8 +60,6 @@ neon_shipment <- function(fname){
   samples$remarks = trash
   
   #set some terms lists and error messages
-  condlist_bad = c("damaged", "sample incomplete", "handling error", "other")
-  condlist_good = c("OK", "Sample Received Damaged", "Sample Damaged", "Lost During Storage")
   ynerr = "Bad value, only Y and N allowed\n"
   
   #gather and populate receipt info
@@ -92,78 +75,35 @@ neon_shipment <- function(fname){
     }
     samples$sampleReceived[i] = tok
     
-    #If sample was received, was it accepted for analysis?
-    if(tok == "Y"){
-      tok = "a"
-      while(tok != "Y" && tok != "N"){
-        tok = readline("Was sample accepted for analysis (Y/N)? ")
-        if(tok != "Y" && tok != "N"){cat(ynerr)}
-      }
-      samples$acceptedForAnalysis[i] = tok
-      
-      #If sample was accepted, document condition for data report
-      if(tok == "Y"){
-        tok = "a"
-        while(!(tok %in% condlist_good)){
-          cat("possible values: ")
-          for(j in 1:length(condlist_good)){
-            if(j > 1){cat(", ")}
-            cat(condlist_good[j])
-          }
-          cat("\n")
-          tok = readline("What was the sample condition? ")
-          if(!(tok %in% condlist_good)){
-            cat("Bad value. Condition must be in the list.\n")
-          }
-        }
-        samples$sampleCondition[i] = tok
-      } else {  #If sample wasn't accepted for analysis, why?
-        tok = "a"
-        while(!(tok %in% condlist_bad)){
-          cat("possible values: ")
-          for(j in 1:length(condlist_bad)){
-            if(j > 1){cat(", ")}
-            cat(condlist_bad[j])
-          }
-          cat("\n")
-          tok = readline("What was the sample condition? ")
-          if(!(tok %in% condlist_bad)){
-            cat("Bad value. Condition must be in the list.\n")
-          }
-        }
-        samples$sampleCondition[i] = tok
-      }
-    }  
-    
-    #If condition is other, what is it?
-    if(tok == "other"){
-      tok = ""
-      while(tok == ""){
-        tok = readline("Enter sample remarks describing condition (required): ")
-        if(tok == ""){cat("Bad value. Remarks are required.\n")}
-      }
-    
-    #If condition isn't other, remarks are optional   
-    } else{
-      tok = readline("Enter any sample comments (optional): ")
-    }
-    samples$remarks[i] = tok
+    samples = uinput(tok, samples, i)
   }
   
   #Input any unknown sample IDs
-  tok = "a"
+  tok = "Y"
   i=1
   cat("\n")
   while(tok != ""){
     tok = readline("Enter Sample IDs for unknown samples, return for done: ")
-    if(tok != "a" && tok != ""){
+    if(tok != "Y" && tok != ""){
+      #Fill in sample line...
       samples[ns+i,] = NA
       samples$shipmentID[ns+i] = samples$shipmentID[ns]
       samples$sampleClass[ns+i] = samples$sampleClass[ns]
       samples$sampleID[ns+i] = tok
       samples$unknownSamples[ns+i] = tok
+      samples$shipmentReceivedDate[ns+i] = today
+      samples$receivedBy[ns+i] = rbname
+      samples$jobNumber[ns+i] = jnum
+      
+      tok = "Y"
+      samples$sampleReceived[ns+i] = tok
+      samples = uinput(tok, samples, ns+i)
       i = i+1
     }
+  }
+  
+  if(i > 1){
+    find.dupes(samples$sampleID[(ns+1):(ns+i-1)], i-1, channel)
   }
   
   #Get current number of samples in DB
@@ -228,7 +168,7 @@ neon_shipment <- function(fname){
                        "acceptedForAnalysis" = samples$acceptedForAnalysis,
                        "sampleCondition" = samples$sampleCondition, 
                        "unknownSamples" = samples$unknownSamples, 
-                       "remarks" = samples$remarks)
+                       "remarks" = samples$remarks, stringsAsFactors = FALSE)
   receipt[receipt$acceptedForAnalysis == "Y" , 9] = ""
   receipt[receipt$acceptedForAnalysis == "Y", 11] = ""
   fname = paste0("Bowen_Lab/Data_reports/NEON/Shipping/receipt_form_", receipt$shipmentID[1], ".csv")
@@ -236,5 +176,89 @@ neon_shipment <- function(fname){
   
 }
 
+uinput = function(tok, samples, i){
 
+  #set some terms lists and error messages
+  ynerr = "Bad value, only Y and N allowed\n"
+  condlist_bad = c("damaged", "sample incomplete", "handling error", "other")
+  condlist_good = c("OK", "Sample Received Damaged", "Sample Damaged", "Lost During Storage")
+  
+  #If sample was received, was it accepted for analysis?
+  if(tok == "Y"){
+    tok = "a"
+    while(tok != "Y" && tok != "N"){
+      tok = readline("Was sample accepted for analysis (Y/N)? ")
+      if(tok != "Y" && tok != "N"){cat(ynerr)}
+    }
+    samples$acceptedForAnalysis[i] = tok
+    
+    #If sample was accepted, document condition for data report
+    if(tok == "Y"){
+      tok = "a"
+      while(!(tok %in% condlist_good)){
+        cat("possible values: ")
+        for(j in 1:length(condlist_good)){
+          if(j > 1){cat(", ")}
+          cat(condlist_good[j])
+        }
+        cat("\n")
+        tok = readline("What was the sample condition? ")
+        if(!(tok %in% condlist_good)){
+          cat("Bad value. Condition must be in the list.\n")
+        }
+      }
+      samples$sampleCondition[i] = tok
+    } else {  #If sample wasn't accepted for analysis, why?
+      tok = "a"
+      while(!(tok %in% condlist_bad)){
+        cat("possible values: ")
+        for(j in 1:length(condlist_bad)){
+          if(j > 1){cat(", ")}
+          cat(condlist_bad[j])
+        }
+        cat("\n")
+        tok = readline("What was the sample condition? ")
+        if(!(tok %in% condlist_bad)){
+          cat("Bad value. Condition must be in the list.\n")
+        }
+      }
+      samples$sampleCondition[i] = tok
+    }
+  }  
+  
+  #If condition is other, what is it?
+  if(tok == "other"){
+    tok = ""
+    while(tok == ""){
+      tok = readline("Enter sample remarks describing condition (required): ")
+      if(tok == ""){cat("Bad value. Remarks are required.\n")}
+    }
+    
+    #If condition isn't other, remarks are optional   
+  } else{
+    tok = readline("Enter any sample comments (optional): ")
+  }
+  samples$remarks[i] = tok
+  
+  return(samples)
+}
 
+find.dupes = function(IDs, ns, channel){
+  
+  #find existing data in DB
+  existing = data.frame(sampleID = character(), stringsAsFactors = FALSE)
+  for(i in 1:ns){
+    existing <- rbind(existing, sqlQuery(channel, paste0("SELECT SampleID FROM NEON_shipping 
+                                                         WHERE SampleID = '", IDs[i], "'"))) 
+  }
+  if(nrow(existing)>0){
+    vdupes = readline(prompt="Duplicate entries found in database. View (Y/N)?")
+    if(vdupes!="N") print(existing)
+    ddupes = readline(prompt="Delete (Y/N)?")
+    if(ddupes=="Y"){ 
+      for(i in 1:nrow(existing)){
+        sqlQuery(channel, paste0("DELETE FROM NEON_shipping WHERE SampleID = '", existing$SampleID[i], "'"))
+      }
+    } else {stop("data already present in database, no new data imported")}
+  }
+}

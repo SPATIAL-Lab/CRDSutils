@@ -48,23 +48,23 @@ par.query = function(criteria){
   legend("bottomleft", legend=c("green = O, blue = H"))
   
   #Plot slrm values
-  plot(par$Run_date, par$PT_O_ave, ylim=c(min(par$PT_O_ave), max(par$PT_O_ave)), col="dark green", xlab="Run Date", ylab="PT d18O")
+  plot(par$Run_date, par$PT_O_ave, ylim=c(min(par$PT_O_ave), max(par$PT_O_ave)), col="dark green", xlab="Run Date", ylab="SRM d18O")
   points(par.good$Run_date, par.good$PT_O_ave, pch=16, col="dark green")
   par(new=TRUE)
   plot(par$Run_date, par$PT_H_ave, ylim=c(min(par$PT_H_ave), max(par$PT_H_ave)), col="blue", xaxt="n", yaxt="n", xlab="", ylab="")
   points(par.good$Run_date, par.good$PT_H_ave, pch=16, col="blue")
   axis(4)
-  mtext("PT d2H", side=4, line=3)
+  mtext("SRM d2H", side=4, line=3)
   legend("bottomleft", legend=c("green = O, blue = H"))
   
   #Plot slrm SDs
-  plot(par$Run_date, par$PT_O_sd, ylim=c(min(par$PT_O_sd), max(par$PT_O_sd)), col="dark green", xlab="Run Date", ylab="PT d18O SD")
+  plot(par$Run_date, par$PT_O_sd, ylim=c(min(par$PT_O_sd), max(par$PT_O_sd)), col="dark green", xlab="Run Date", ylab="SRM d18O SD")
   points(par.good$Run_date, par.good$PT_O_sd, pch=16, col="dark green")
   par(new=TRUE)
   plot(par$Run_date, par$PT_H_sd, ylim=c(min(par$PT_H_sd), max(par$PT_H_sd)), col="blue", xaxt="n", yaxt="n", xlab="", ylab="")
   points(par.good$Run_date, par.good$PT_H_sd, pch=16, col="blue")
   axis(4)
-  mtext("PT d2H SD", side=4, line=3)
+  mtext("SRM d2H SD", side=4, line=3)
   legend("bottomleft", legend=c("green = O, blue = H"))
   
   par.sum = sapply(par.good[,4:(ncol(par.good)-1)], mean)

@@ -7,9 +7,9 @@
 
 ####MODIFY VALUES TO EXTRACT DESIRED DATA####
 setwd("C:/Users/u0939524/Dropbox")
-instrument = "HIDS2046"
-min.date = "01/01/18"
-max.date = "05/01/18"
+instrument = "HIDS2052"
+min.date = "05/01/18"
+max.date = "08/10/18"
 ignore = 1  ##USE 1 FOR ONLY GOOD RUNS, 2 FOR ALL RUNS
 
 ####THEN RUN THE FOLLOWING####
