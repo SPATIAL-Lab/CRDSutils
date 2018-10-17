@@ -95,6 +95,8 @@ post.metadata = function(fname, newproj){
               if(tmpdat[i,j] == " ") {tmpdat[i,j] = "NULL"}
             }
           }
+          #replace -9999 elevation with null
+          if(tmpdat$Elevation_mabsl[i] == -9999){tmpdat$Elevation_mabsl[i] = NA}
           
           #create data string
           
@@ -105,6 +107,7 @@ post.metadata = function(fname, newproj){
           #SQL style Nulls
           dat = gsub("'NA'","NULL",dat)
           dat = gsub("NA","NULL",dat)
+          dat = gsub("''", "NULL", dat)
           
           #Insert data
           sqlQuery(channel, paste0("INSERT INTO Sites (Site_ID,Site_Name,Latitude,Longitude,Elevation_mabsl,Address,City,State_or_Province,Country,Site_Comments) VALUES ",
@@ -417,7 +420,7 @@ delete.metadata = function(fname){
   channel = odbcConnect("WIDB")
   
   #####Check and delete Samples data
-  tmpdat = excel_read(fname, sheet="Sites", col_names = TRUE)
+  tmpdat = read_excel(fname, sheet="Sites", col_names = TRUE)
   err=0
   good=0
   if(nrow(tmpdat)>0){
