@@ -96,8 +96,7 @@ post.metadata = function(fname, newproj){
             }
           }
           #replace -9999 elevation with null
-          if(tmpdat$Elevation_mabsl[i] == -9999){tmpdat$Elevation_mabsl[i] = NA}
-          
+          if((!is.character(tmpdat$Elevation_mabsl[i]))&(tmpdat$Elevation_mabsl[i] == -9999)){tmpdat$Elevation_mabsl[i] = NA}
           #create data string
           
           dat = paste0("('",tmpdat$Site_ID[i],"','",tmpdat$Site_Name[i],"',",tmpdat$Latitude[i],",",tmpdat$Longitude[i],",",
