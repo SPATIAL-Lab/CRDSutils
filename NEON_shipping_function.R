@@ -6,7 +6,7 @@
 
 neon_shipment <- function(fname){
   library(RODBC) #loads required library
-  library(xlsx) #loads required library
+  library(openxlsx) #loads required library
   
   #create channel with filepath to the database
   channel = odbcConnect("WIDB")

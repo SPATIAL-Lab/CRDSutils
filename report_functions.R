@@ -11,7 +11,7 @@ reports <- function(ID2, date, job, runs= FALSE, report,
   library(RODBC)
   ## loads RODBC library
   
-  library(xlsx)
+  library(openxlsx)
   ## loads xlsx library
   
   source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R")
