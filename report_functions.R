@@ -196,7 +196,7 @@ reports <- function(ID2, date, job, runs= FALSE, report,
                           value=TRUE, perl=TRUE)
       ## finds filename for excel file with run data
       
-      ref <- read.xlsx(file, sheetName="ref.all")
+      ref <- read.xlsx(file, sheet="ref.all")
       ## reads in ref.all tase from file
       
       ref <- ref[ref$Port > 1 & ref$inj >=7,]
@@ -214,7 +214,7 @@ reports <- function(ID2, date, job, runs= FALSE, report,
       plrm2.df <- ref2[ref2$ID==plrm2,]
       ## subsets ref2 to include only plrm2 data
       
-      slrm.df <- read.xlsx(file,sheetName="slrm.summary")
+      slrm.df <- read.xlsx(file,sheet="slrm.summary")
       ## reads in slrm.df table from file
       
       slrm.df2 <- data.frame(ID = slrm.df$ID, 
@@ -305,7 +305,7 @@ reports <- function(ID2, date, job, runs= FALSE, report,
                           perl=TRUE)
       ## looks up filename for given date & instrument
 
-      ref <- read.xlsx(file, sheetName="ref.compare")
+      ref <- read.xlsx(file, sheet="ref.compare")
       ## reads in ref.compare table from file
       
       ref2 <- ref[ref$ID != slrm, c(1,5,6,7,8,11,12)]
@@ -323,7 +323,7 @@ reports <- function(ID2, date, job, runs= FALSE, report,
       ## creates a column for subsamples processed & populates
       ## with the number 4
     
-      slrm.df <- read.xlsx(file, sheetName = "qa.report",
+      slrm.df <- read.xlsx(file, sheet = "qa.report",
                            stringsAsFactors=FALSE)
       ## reads in qa.report table from file
       
