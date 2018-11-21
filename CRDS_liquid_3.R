@@ -32,6 +32,24 @@ excel(files$ids.file,corrected) # write to excel
 
 #####################################################################
 ### comments - write any comments here
+run.date <- 181113 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
 run.date <- 181101 # update, eg. 150310
 ## date on which a run was started, eg. 150310
 machine <- 'hids2052'  # update, eg. 'hids2052'

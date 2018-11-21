@@ -26,6 +26,80 @@ neon_shipment("")
 #####################################################################
 
 #####################################################################
+## 11/19/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/NEON_shipping_function.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D1020181114134515025.csv")
+#####################################################################
+
+#####################################################################
+## 11/19/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/NEON_shipping_function.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D082018119130500578.csv")
+#####################################################################
+
+#####################################################################
+## 11/19/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/NEON_shipping_function.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D1720181113070251687.csv")
+#####################################################################
+
+
+#####################################################################
+## 11/19/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/NEON_shipping_function.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D1420181112105004216.csv")
+#####################################################################
+
+
+
+#####################################################################
+## 11/12/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/NEON_shipping_function.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_181015143906175.csv")
+#####################################################################
+
+
+#####################################################################
+## 11/19/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/NEON_shipping_function.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D1420181112103942328.csv")
+#####################################################################
+
+
+#####################################################################
+## 11/12/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/NEON_shipping_function.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D0120181008100239675.csv")
+#####################################################################
+
+
+
+#####################################################################
+## 11/12/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/NEON_shipping_function.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D032018109125737819.csv")
+#####################################################################
+
+
+
+#####################################################################
+## 11/12/18
+setwd("C:/Users/u0939524/Dropbox")
+source("Bowen_lab/R_scripts_active/NEON_shipping_function.R")
+neon_shipment("Bowen_Lab/Data_reports/NEON/Shipping/manifest_for_D032018109125737819.csv")
+#####################################################################
+
+
+
+#####################################################################
 ## 10/25/18
 setwd("C:/Users/u0939524/Dropbox")
 source("Bowen_lab/R_scripts_active/NEON_shipping_function.R")

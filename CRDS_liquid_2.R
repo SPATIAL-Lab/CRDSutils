@@ -497,8 +497,8 @@ excel <- function(file,data){
   ## process.crds function that includes 6 tables
   
 
-  library(xlsx)
-  ## loads xlsx library
+  library(openxlsx)
+  ## loads openxlsx library
 
   output_file <- sub("hids2046/runfiles/|hids2053/runfiles/|hids2052/runfiles/",
                      "",file)
@@ -517,13 +517,15 @@ excel <- function(file,data){
   wb <- createWorkbook()
   ## creates an empty excel workbook
   
-  saveWorkbook(wb, output_file)
-  ## saves the empty excel workbook to the filename specified by
-  ## output_file
-  
-  lapply(names(data), function(x) write.xlsx(data[[x]], 
-                      output_file, sheetName=x, append=TRUE, 
-                      row.names=FALSE))
+  lapply(names(data), function(x) addWorksheet(wb, sheetName=x))
   ## creates one tab in the workbook for each of the tables
   ## in data
+  
+  lapply(names(data), function(x) writeData(wb, sheet=x, data[[x]]))
+  ## writes each table in data to corresponding worksheet
+
+  saveWorkbook(wb, output_file)
+  ## saves the excel workbook to the filename specified by
+  ## output_file
+  
 }

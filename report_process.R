@@ -32,6 +32,14 @@ reports(ID2 = "", date = "", job = "",
 setwd("C:/Users/u0939524/Dropbox") # update, eg. 
 # "C:/Users/kblevins/Dropbox/SPATIAL lab"
 source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "18-384", date = "10/05/2018", job = "18-384", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
 reports(ID2 = "18-259", date = "06/05/2018", job = "18-259", 
         report = "spatial", runs = FALSE, ignore = TRUE, plot = TRUE) 
 ## generate report(s)
