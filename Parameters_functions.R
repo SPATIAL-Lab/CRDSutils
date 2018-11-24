@@ -6,9 +6,16 @@ par.query = function(criteria){
   channel = odbcConnect("WIDB")
   ## creates a connection to the database, must be loaded as ODBC source w/ this name
   
-  par = sqlQuery(channel, paste0("SELECT * FROM Parameters_table WHERE Instrument ='", criteria$instrument, 
+  if(criteria$instrument == "all"){
+    par = sqlQuery(channel, paste0("SELECT * FROM Parameters_table WHERE Run_date >= '", criteria$min.date,
+                                   "' AND Run_date <= '", criteria$max.date,
+                                   "' AND Ignore_run != ", criteria$ignore))
+  } else {
+    par = sqlQuery(channel, paste0("SELECT * FROM Parameters_table WHERE Instrument ='", criteria$instrument, 
                                  "' AND Run_date >= '", criteria$min.date, "' AND Run_date <= '", criteria$max.date,
                                  "' AND Ignore_run != ", criteria$ignore))
+  }
+  
   close(channel)
   par.good = subset(par, par$Ignore_run == 0)
   
