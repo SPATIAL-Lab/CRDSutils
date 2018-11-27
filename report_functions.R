@@ -323,8 +323,7 @@ reports <- function(ID2, date, job, runs= FALSE, report,
       ## creates a column for subsamples processed & populates
       ## with the number 4
     
-      slrm.df <- read.xlsx(file, sheet = "qa.report",
-                           stringsAsFactors=FALSE)
+      slrm.df <- read.xlsx(file, sheet = "qa.report")
       ## reads in qa.report table from file
       
       slrm.df2 <- data.frame(qa_qc_ID = "SLRM",sampleID = slrm,
