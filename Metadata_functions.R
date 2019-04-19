@@ -41,7 +41,10 @@ post.metadata = function(fname, newproj){
   #####Figure out what needs to be imported
   SitesYN = T
   SamplesYN = T
-  ProjectsYN = T
+  if(newproj == "Y"){ 
+    ProjectsYN = T } else{
+      ProjectsYN = F
+    }
   AnalysisYN = T
   ClimateYN = T
   if(csvImport){
@@ -234,7 +237,10 @@ post.metadata = function(fname, newproj){
   }
   #####Check and load Water Isotope data
   if(AnalysisYN){
-    tmpdat = read_excel(fname, sheet="Water_Isotope_Data", col_names =TRUE)
+    #Note anlayses will never be present for wiSamples csv import
+    tmpdat = read_excel(fname, sheet="Water_Isotope_Data", col_names =TRUE, col_types = 
+                        c("text", "text", "numeric", "numeric", "numeric", "numeric", 
+                          "numeric", "numeric", "guess", "text", "text", "text", "text"))
     
     #Set up accounting
     dups=0
@@ -418,7 +424,7 @@ delete.metadata = function(fname){
   library(RODBC)
   channel = odbcConnect("WIDB")
   
-  #####Check and delete Samples data
+  #####Check and delete Sites data
   tmpdat = read_excel(fname, sheet="Sites", col_names = TRUE)
   err=0
   good=0

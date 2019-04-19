@@ -32,6 +32,600 @@ excel(files$ids.file,corrected) # write to excel
 
 #####################################################################
 ### comments - write any comments here
+run.date <- 190415 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190411 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190411 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190327 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190325 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190321 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190318 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190313 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190312 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190311 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190308 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190304 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190227 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190225 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190221 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190219 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190214 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190213 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2046'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190207 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190204 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190129 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190201 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190125 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190123 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190117 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190114 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190110 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190108 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 190103 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+#####################################################################
+### comments - write any comments here
+run.date <- 181218 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 181211 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 181203 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
+run.date <- 181129 # update, eg. 150310
+## date on which a run was started, eg. 150310
+machine <- 'hids2052'  # update, eg. 'hids2052'
+setwd("C:/Users/u0939524/Dropbox") # update, e.g,. "C:/Users/u0989124/Dropbox/SPATIAL Lab"
+analyst = "Sagarika Banerjee"  #update, e.g., "Sagarika Banerjee"
+
+source("Bowen_Lab/R_scripts_active/CRDS_liquid_2.R") # load functions
+files <- file.lookup(machine, run.date) # lookup file names
+check.files(files) # check files
+corrected <- process.data(files) # process data
+review.data(corrected) # review data
+db(corrected, analyst) # write to database
+excel(files$ids.file,corrected) # write to excel
+####################################################################
+
+
+#####################################################################
+### comments - write any comments here
 run.date <- 181119 # update, eg. 150310
 ## date on which a run was started, eg. 150310
 machine <- 'hids2052'  # update, eg. 'hids2052'

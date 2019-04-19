@@ -26,7 +26,233 @@ setwd("") # update, eg.
 source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
 reports(ID2 = "", date = "", job = "", 
         report = "", runs = FALSE, ignore = TRUE, plot = TRUE) 
-## generate
+## 
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-072", date = "01/01/2019", job = "19-072", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-067", date = "01/01/2019", job = "19-067", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-058", date = "02/01/2019", job = "19-058", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-053", date = "01/01/2019", job = "19-053", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-015", date = "01/01/2019", job = "19-015", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-052", date = "01/30/2019", job = "19-052", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-043", date = "01/30/2019", job = "19-043", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-029", date = "01/30/2019", job = "19-029", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-051", date = "02/3/2019", job = "19-051", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-027", date = "11/30/2018", job = "19-027", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-026", date = "11/30/2018", job = "19-026", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-007", date = "11/30/2018", job = "19-007", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-006", date = "11/30/2018", job = "19-006", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-009", date = "11/30/2018", job = "19-009", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "19-008", date = "11/30/2018", job = "19-008", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "18-417", date = "11/30/2018", job = "18-417", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "18-433", date = "11/30/2018", job = "18-433", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "18-432", date = "11/30/2018", job = "18-432", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "18-431", date = "11/30/2018", job = "18-431", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "BQ", date = "11/30/2018", job = "BQ", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "18-424", date = "11/30/2018", job = "18-424", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "18-421", date = "11/25/2018", job = "18-421", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "18-412", date = "10/05/2018", job = "18-412", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "18-414", date = "10/05/2018", job = "18-414", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "18-415", date = "10/05/2018", job = "18-415", 
+        report = "sirfer", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
+
+#####################################################################
+setwd("C:/Users/u0939524/Dropbox") # update, eg. 
+# "C:/Users/kblevins/Dropbox/SPATIAL lab"
+source("Bowen_lab/R_scripts_active/report_functions.R") # load functions
+reports(ID2 = "18-413", date = "10/05/2018", job = "18-413", 
+        report = "neon", runs = FALSE, ignore = TRUE, plot = TRUE) 
+## generate report(s)
+
 
 #####################################################################
 setwd("C:/Users/u0939524/Dropbox") # update, eg. 

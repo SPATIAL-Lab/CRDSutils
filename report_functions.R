@@ -136,7 +136,6 @@ reports <- function(ID2, date, job, runs= FALSE, report,
     
     if(file.exists(output_file)){file.remove(output_file)} 
     wb <- createWorkbook()
-    saveWorkbook(wb, output_file)
     ## checks for and removes existing files with same name
     
   } else{
@@ -167,11 +166,15 @@ reports <- function(ID2, date, job, runs= FALSE, report,
     outputs <- list(data = data, parameters = parameters)
     ## creates a list of two dataframes - data & parameters
     
-    lapply(names(outputs), function(x) 
-      write.xlsx(outputs[[x]], output_file, sheetName=x, 
-                 append=TRUE, row.names=FALSE))
-    ## writes each of the dataframes in the outputs list to
-    ## a tab in the output spreadsheet
+    lapply(names(outputs), function(x) addWorksheet(wb, sheetName=x))
+    ## creates one tab in the workbook for each of the tables
+    ## in data
+    
+    lapply(names(outputs), function(x) writeData(wb, sheet=x, outputs[[x]]))
+    ## writes each table in data to corresponding worksheet
+    
+    saveWorkbook(wb, output_file)
+    ## save the file
   }
 
   
@@ -249,12 +252,20 @@ reports <- function(ID2, date, job, runs= FALSE, report,
       final$d18O <- as.numeric(final$d18O)
       ## stores d18O column as numeric data
   
-      write.xlsx(final, output_file,
-             sheetName=paste(r$Instrument[i],r$Run_date[i]), 
-             append=TRUE, row.names=FALSE)
+      sheetName = paste(r$Instrument[i],r$Run_date[i])
+      
+      addWorksheet(wb, sheetName=sheetName)
+      ## creates a tab in the workbook for each run
+      
+      writeData(wb, sheet=sheetName, final)
+      ## writes each table in data to corresponding worksheet
+      
     }
     ## creates a tab in the output file for each run with the 
     ## sample data and reference data
+    
+    saveWorkbook(wb, output_file)
+    ## save the file after everything is added
   }
 
 

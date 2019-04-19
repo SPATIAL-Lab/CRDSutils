@@ -142,7 +142,7 @@ neon_shipment <- function(fname){
 
     #change NA and blank to SQL NULL 
     sql2 = gsub("'NA'", "NULL", sql2)
-    sql2 = gsub("NA", "NULL", sql2)
+    sql2 = gsub(",NA,", ",NULL,", sql2)
     sql2 = gsub("''", "NULL", sql2)
      
     #post values to the DB
