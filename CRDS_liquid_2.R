@@ -469,8 +469,8 @@ db <- function(data, analyst){
   for(i in 1:nrow(s)){
     qstring = paste0("INSERT INTO Water_Isotope_Data (WI_Analysis_ID, Sample_ID, d2H, d18O, d2H_Analytical_SD, d18O_Analytical_SD, WI_Analysis_Date, WI_Analysis_Source, WI_Analysis_Instrument, WI_Analysis_Ignore)
            VALUES('SPATIAL_", widmax+i, "', '", s$Sample_ID[i], "', ", s$d2H_dc[i], ", ", s$d18O_dc[i], ", ", s$d2H_sd[i], ", ", s$d18O_sd[i], ", '", Run_date, "', 'SPATIAL','",  Instrument, "', ", s$Ignore[i], ")")
-    qstring = gsub("NaN", "NULL", qstring)
-    qstring = gsub("NA", "NULL", qstring)
+    qstring = gsub(",NaN,", ",NULL,", qstring)
+    qstring = gsub(",NA,", ",NULL,", qstring)
     sqlQuery(channel, qstring)
   }
   n2 = sqlQuery(channel, "SELECT COUNT(*) FROM Water_Isotope_Data")

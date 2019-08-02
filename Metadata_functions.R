@@ -14,7 +14,7 @@ review.projects = function(){
 
 
 #Add new data to DB from Excel template
-post.metadata = function(fname, newproj){
+post.metadata = function(fname, newproj, prefix){
   
   library(readxl)
   library(RODBC)
@@ -108,7 +108,7 @@ post.metadata = function(fname, newproj){
           
           #SQL style Nulls
           dat = gsub("'NA'","NULL",dat)
-          dat = gsub("NA","NULL",dat)
+          dat = gsub(",NA,",",NULL,",dat)
           dat = gsub("''", "NULL", dat)
           
           #Insert data
@@ -135,6 +135,8 @@ post.metadata = function(fname, newproj){
                                                     "character", "integer", "character", 
                                                     "character"),
                         stringsAsFactors = F, encoding = "UTF-8")
+      #protection, sometings extrenouous characters are read depending on encoding...
+      names(tmpdat)[1] = "Sample_ID"
     } else {
       tmpdat = read_excel(fname, sheet="Samples", col_names = TRUE,
                           col_types = c("text", "text", "text", "text", "guess",
@@ -161,7 +163,9 @@ post.metadata = function(fname, newproj){
         }
   
         #concatenate IDs if ID2 included
-        if(!is.na(tmpdat$Sample_ID_2[i]) && tmpdat$Sample_ID_2[i] != ""){
+        if(prefix != ""){
+          tmpdat$Sample_ID[i] = paste0(prefix, "_", tmpdat$Sample_ID[i])
+        } else if(!is.na(tmpdat$Sample_ID_2[i]) && tmpdat$Sample_ID_2[i] != ""){
           tmpdat$Sample_ID[i] = paste0(tmpdat$Sample_ID_2[i], "_", tmpdat$Sample_ID[i])
         }
         
@@ -202,6 +206,7 @@ post.metadata = function(fname, newproj){
               collectionDate = strptime(tmpdat$Collection_Date[i], "%m/%d/%y %I:%M %p")
               collectionDate = as.POSIXct(collectionDate) 
             } else {
+              #need to support other date formats, in particular both %y and %Y
               collectionDate = strptime(tmpdat$Collection_Date[i], "%m/%d/%y %H:%M")
               collectionDate = as.POSIXct(collectionDate) 
             }
@@ -220,7 +225,7 @@ post.metadata = function(fname, newproj){
           
           #SQL style Nulls
           dat = gsub("'NA'","NULL",dat)
-          dat = gsub("NA","NULL",dat)
+          dat = gsub(",NA,",",NULL,",dat)
           dat = gsub("''", "NULL", dat)
 
           sqlQuery(channel, paste0("INSERT INTO Samples (Sample_ID,Sample_ID_2,Site_ID,Type,Start_Date,Start_Time_Zone,Collection_Date,Collection_Time_Zone,Sample_Volume_ml,Collector_type,Phase,Depth_meters,Sample_Source,Sample_Ignore,Sample_Comments,Project_ID) VALUES ",
@@ -282,7 +287,8 @@ post.metadata = function(fname, newproj){
           
           #SQL style Nulls
           dat = gsub("'NA'","NULL",dat)
-          dat = gsub("NA","NULL",dat)
+          dat = gsub(",NA,",",NULL,",dat)
+          dat = gsub("''", "NULL", dat)
           
           #Insert data
           sqlQuery(channel, paste0("INSERT INTO Water_Isotope_Data (WI_Analysis_ID,Sample_ID,d2H,d18O,D17O,d2H_Analytical_SD,d18O_Analytical_SD,D17O_Analytical_SD,WI_Analysis_Date,WI_Analysis_Source,WI_Analysis_Instrument,WI_Analysis_Ignore,WI_Analysis_Comments) VALUES ",
@@ -337,7 +343,8 @@ post.metadata = function(fname, newproj){
                        tmpdat$Climate_Source[i],",'",tmpdat$Climate_Comments[i],"')")
           #SQL style Nulls
           dat = gsub("'NA'","NULL",dat)
-          dat = gsub("NA","NULL",dat)
+          dat = gsub(",NA,",",NULL,",dat)
+          dat = gsub("''", "NULL", dat)
           
           #Insert data
           sqlQuery(channel, paste0("INSERT INTO Climate_Data (Climate_ID,Sample_ID, Precipitation_mm, Mean_Temperature_C, Min_Temperature_C, Max_Temperature_C, Vapor_Pressure_hPa, Climate_Source, Climate_Comments) VALUES ",
@@ -397,7 +404,8 @@ post.metadata = function(fname, newproj){
           
           #SQL style Nulls
           dat = gsub("'NA'","NULL",dat)
-          dat = gsub("NA","NULL",dat)
+          dat = gsub(",NA,",",NULL,",dat)
+          dat = gsub("''", "NULL", dat)
           
           #Insert data
           sqlQuery(channel, paste0("INSERT INTO Projects (Project_ID,Contact_Name,Contact_Email,Citation,URL,Project_Name,Proprietary) VALUES ",
