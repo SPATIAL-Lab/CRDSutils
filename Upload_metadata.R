@@ -1,16 +1,16 @@
 #1) set values here
 #Sys.setenv(TZ= "GMT")
-setwd("C:/Users/u0133977/Dropbox/Bowen_Lab/Sample_metadata")                 
+setwd("C:/Users/u0133977/Dropbox/Bowen_Lab/Sample_metadata/19-164")                 
 
 ### name of excel data file in template format or "" for csv from iPhone
-fname = "Marchetti19.xlsx"        
+fname = ""        
 
 ### set to "Y" if you want to auto-assign a new project ID, "N" otherwise
 newproj = "N"   
 
 ### set value if you want to append a uniform sample ID prefix, e.g. SIRFER job number
 ### use "" if none
-prefix = ""
+prefix = "19-164"
 
 #2) run to compile functions
 source("C:/Users/u0133977/Dropbox/Bowen_Lab/R_scripts_active/Metadata_functions.R")
@@ -23,3 +23,4 @@ source("C:/Users/u0133977/Dropbox/Bowen_Lab/R_scripts_active/Metadata_functions.
 
 #5) run to upload new data to DB
 post.metadata(fname, newproj, prefix)
+

@@ -75,6 +75,12 @@ post.metadata = function(fname, newproj, prefix){
     err=0
     good=0
     
+    #Make sure numbers are stored as numeric
+    for(i in 3:5){
+      tmpdat[,i] = as.numeric(tmpdat[,i])
+    }
+    
+    #Cycle through rows
     if(nrow(tmpdat)>0){
       for(i in 1:nrow(tmpdat)){
         
@@ -90,6 +96,7 @@ post.metadata = function(fname, newproj, prefix){
           dups = dups+1
           dupIDs = rbind(dupIDs, as.character(duprow$SITE_ID))
         } else {
+          
           #find and replace apostrophes
           for(j in 2:ncol(tmpdat)){
             tmpdat[i,j] = gsub("'", "_", tmpdat[i,j])
@@ -98,10 +105,11 @@ post.metadata = function(fname, newproj, prefix){
               if(tmpdat[i,j] == " ") {tmpdat[i,j] = "NULL"}
             }
           }
-          #replace -9999 elevation with null
-          if((!is.character(tmpdat$Elevation_mabsl[i]))&(tmpdat$Elevation_mabsl[i] == -9999)){tmpdat$Elevation_mabsl[i] = NA}
-          #create data string
           
+          #replace -9999 elevation with null
+          if((tmpdat$Elevation_mabsl[i] == -9999)){tmpdat$Elevation_mabsl[i] = NA}
+          
+          #create data string
           dat = paste0("('",tmpdat$Site_ID[i],"','",tmpdat$Site_Name[i],"',",tmpdat$Latitude[i],",",tmpdat$Longitude[i],",",
                        tmpdat$Elevation_mabsl[i],",'",tmpdat$Address[i],"','",tmpdat$City[i],"','",
                        tmpdat$State_or_Province[i],"','",tmpdat$Country[i],"','",tmpdat$Site_Comments[i],"')")
@@ -284,12 +292,12 @@ post.metadata = function(fname, newproj, prefix){
                        tmpdat$D17O[i],",",tmpdat$d2H_Analytical_SD[i],",",tmpdat$d18O_Analytical_SD[i],",",
                        tmpdat$D17O_Analytical_SD[i],",'",tmpdat$WI_Analysis_Date[i],"','",tmpdat$WI_Analysis_Source[i],"','",
                        tmpdat$WI_Analysis_Instrument[i],"',",tmpdat$WI_Analysis_Ignore[i],",'",tmpdat$WI_Analysis_Comments[i],"')")
-          
+
           #SQL style Nulls
           dat = gsub("'NA'","NULL",dat)
-          dat = gsub(",NA,",",NULL,",dat)
+          dat = gsub("NA,","NULL,",dat)
           dat = gsub("''", "NULL", dat)
-          
+
           #Insert data
           sqlQuery(channel, paste0("INSERT INTO Water_Isotope_Data (WI_Analysis_ID,Sample_ID,d2H,d18O,D17O,d2H_Analytical_SD,d18O_Analytical_SD,D17O_Analytical_SD,WI_Analysis_Date,WI_Analysis_Source,WI_Analysis_Instrument,WI_Analysis_Ignore,WI_Analysis_Comments) VALUES ",
                                    dat))
@@ -343,7 +351,7 @@ post.metadata = function(fname, newproj, prefix){
                        tmpdat$Climate_Source[i],",'",tmpdat$Climate_Comments[i],"')")
           #SQL style Nulls
           dat = gsub("'NA'","NULL",dat)
-          dat = gsub(",NA,",",NULL,",dat)
+          dat = gsub("NA,","NULL,",dat)
           dat = gsub("''", "NULL", dat)
           
           #Insert data
