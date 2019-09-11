@@ -16,6 +16,8 @@ review.projects = function(){
 #Add new data to DB from Excel template
 post.metadata = function(fname, newproj, prefix){
   
+  options(stringsAsFactors = FALSE)
+  
   library(readxl)
   library(RODBC)
   channel = odbcConnect("WIDB")
@@ -77,7 +79,8 @@ post.metadata = function(fname, newproj, prefix){
     
     #Make sure numbers are stored as numeric
     for(i in 3:5){
-      tmpdat[,i] = as.numeric(tmpdat[,i])
+      if(!is.numeric(tmpdat[[i]]))
+      tmpdat[[i]] = as.numeric(tmpdat[[i]])
     }
     
     #Cycle through rows
@@ -98,7 +101,7 @@ post.metadata = function(fname, newproj, prefix){
         } else {
           
           #find and replace apostrophes
-          for(j in 2:ncol(tmpdat)){
+          for(j in 6:ncol(tmpdat)){
             tmpdat[i,j] = gsub("'", "_", tmpdat[i,j])
             tmpdat[i,j] = gsub("\u2013", "-", tmpdat[i,j])
             if(!is.na(tmpdat[i,j])){
@@ -107,7 +110,9 @@ post.metadata = function(fname, newproj, prefix){
           }
           
           #replace -9999 elevation with null
-          if((tmpdat$Elevation_mabsl[i] == -9999)){tmpdat$Elevation_mabsl[i] = NA}
+          if(!is.na(tmpdat$Elevation_mabsl[i]) & !is.null(tmpdat$Elevation_mabsl[i])){
+            if((tmpdat$Elevation_mabsl[i] == -9999)){tmpdat$Elevation_mabsl[i] = NA}
+          }
           
           #create data string
           dat = paste0("('",tmpdat$Site_ID[i],"','",tmpdat$Site_Name[i],"',",tmpdat$Latitude[i],",",tmpdat$Longitude[i],",",
@@ -262,9 +267,9 @@ post.metadata = function(fname, newproj, prefix){
     good=0
   
     #force factors to character vectors
-    tmpdat$WI_Analysis_Source = as.character(tmpdat$WI_Analysis_Source)
-    tmpdat$WI_Analysis_Instrument = as.character(tmpdat$WI_Analysis_Instrument)
-    tmpdat$WI_Analysis_Comments = as.character(tmpdat$WI_Analysis_Comments)
+#    tmpdat$WI_Analysis_Source = as.character(tmpdat$WI_Analysis_Source)
+#    tmpdat$WI_Analysis_Instrument = as.character(tmpdat$WI_Analysis_Instrument)
+#    tmpdat$WI_Analysis_Comments = as.character(tmpdat$WI_Analysis_Comments)
     
     if(nrow(tmpdat) > 0){
       for(i in 1:nrow(tmpdat)){
