@@ -14,8 +14,8 @@ neon_shipment <- function(fname){
   #read in relevant sheet from NEON spreadsheet
   samples <- read.csv(fname, stringsAsFactors = FALSE) 
   
-  #subset df to include only rows with sample IDs (drops rows with no data)
-  samples <- samples[!is.na(samples$sampleID),] 
+  #subset df to include only rows with sample codes (drops rows with no data)
+  samples <- samples[!is.na(samples$sampleCode),] 
 
   #get number of samples
   ns = nrow(samples)
@@ -60,22 +60,19 @@ neon_shipment <- function(fname){
   samples$remarks = trash
   
   #set some terms lists and error messages
-  ynerr = "Bad value, only Y and N allowed\n"
+  badCode = "Barcode not found, enter sample by hand later\n"
   
-  #gather and populate receipt info
-  for(i in 1:ns){
-    cat("\n")
-    cat(paste("Sample ID =", samples$sampleID[i]), "\n")
-    
-    #Determine whether sample was received
-    tok = "a"
-    while(tok != "Y" && tok != "N"){ 
-      tok = readline("Was sample received (Y/N)? ")
-      if(tok != "Y" && tok != "N"){cat(ynerr)}
+  #scan samples and collect recipt info
+  repeat{
+    sbc = readline("Scan sample or enter if done: ")
+    if(sbc == "") break
+    i = match(sbc, samples$sampleCode)
+    if(is.na(i)){
+      warning(badCode)
+    } else{
+      samples$sampleReceived[i] = "Y"
+      samples = uinput("Y", samples, i)
     }
-    samples$sampleReceived[i] = tok
-    
-    samples = uinput(tok, samples, i)
   }
   
   #Input any unknown sample IDs
