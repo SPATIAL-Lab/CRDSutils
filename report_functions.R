@@ -295,7 +295,8 @@ reports <- function(ID2, date, job, runs= FALSE, report,
                          instrumentSN = data_n$WI_Analysis_Instrument,
                          dateProcessed = data_n$WI_Analysis_Date,
                          d18O = data_n$d18O, d2H = data_n$d2H,
-                         d18O_sd = data_n$d18O_Analytical_SD, d2H_sd = data_n$d2H_Analytical_SD,
+                         d18O_sd = data_n$d18O_Analytical_SD, 
+                         d2H_sd = data_n$d2H_Analytical_SD,
                          ignore = data_n$WI_Analysis_Ignore,
                          analyzingLabName = "University of Utah SIRFER",
                          analyst = data_n$Analyst,
@@ -303,6 +304,10 @@ reports <- function(ID2, date, job, runs= FALSE, report,
                          remarks = gsub("\"", "\'", data_n$receivedRemarks) )
     ## creates a dataframe with only the desired columns, adds one
     ## for analyzingLabName, reformats the dates & renames the columns
+    
+    data_n$dateProcessed = as.character(data_n$dateProcessed)
+    data_n$dateProcessed = gsub("-", "", data_n$dateProcessed)
+    ## NEON date format omits dashes
 
     write.csv(data_n, output_file_1, row.names=FALSE, fileEncoding = "UTF-8")
   
@@ -370,6 +375,9 @@ reports <- function(ID2, date, job, runs= FALSE, report,
       ## dataframe
     }
   
+    qaqc$dateProcessed = gsub("-", "", qaqc$dateProcessed)
+    ## NEON date format omits dashes
+    
     write.csv(qaqc, output_file_2, row.names=FALSE, fileEncoding="UTF-8")
   
   }

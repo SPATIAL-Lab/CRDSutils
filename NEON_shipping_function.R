@@ -168,7 +168,14 @@ neon_shipment <- function(fname){
                        "remarks" = samples$remarks, stringsAsFactors = FALSE)
   receipt[receipt$acceptedForAnalysis == "Y" , 9] = ""
   receipt[receipt$acceptedForAnalysis == "Y", 11] = ""
-  fname = paste0("Bowen_Lab/Data_reports/NEON/Shipping/receipt_form_", receipt$shipmentID[1], ".csv")
+  
+  #NEON date format omits dashes
+  receipt$shipmentReceivedDate = as.character(receipt$shipmentReceivedDate)
+  receipt$shipmentReceivedDate = gsub("-", "", receipt$shipmentReceivedDate)
+  
+  #output
+  fname = paste0("Bowen_Lab/Data_reports/NEON/Shipping/receipt_form_", 
+                 receipt$shipmentID[1], ".csv")
   write.csv(receipt, fname, row.names = FALSE, na = "")
   
 }
