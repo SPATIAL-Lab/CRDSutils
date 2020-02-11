@@ -6,10 +6,10 @@
 #####################################################################
 
 ####MODIFY VALUES TO EXTRACT DESIRED DATA####
-setwd("C:/Users/u0939524/Dropbox")
-instrument = "HIDS2052"  ##Instrument name or 'all' for all
-min.date = "11/01/18"
-max.date = "4/01/19"
+setwd("C:/Users/u0133977/Dropbox")
+instrument = "HIDS2046"  ##Instrument name or 'all' for all
+min.date = "3/10/17"
+max.date = "2/11/20"
 ignore = 1  ##USE 1 FOR ONLY GOOD RUNS, 2 FOR ALL RUNS
 
 ####THEN RUN THE FOLLOWING####

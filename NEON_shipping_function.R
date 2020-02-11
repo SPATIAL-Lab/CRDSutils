@@ -159,7 +159,7 @@ neon_shipment <- function(fname){
                        "shipmentReceivedDate" = samples$shipmentReceivedDate, 
                        "receivedBy" = samples$receivedBy,
                        "sampleID" = samples$sampleID, 
-                       "sampleCode"=rep("", nrow(samples)), 
+                       "sampleCode"= samples$sampleCode, 
                        "sampleClass" = samples$sampleClass, 
                        "sampleReceived" = samples$sampleReceived, 
                        "acceptedForAnalysis" = samples$acceptedForAnalysis,

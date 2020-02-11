@@ -14,7 +14,7 @@ review.projects = function(){
 
 
 #Add new data to DB from Excel template
-post.metadata = function(fname, newproj, prefix){
+post.metadata = function(fname, newproj, prefix, sheets = c("Sites", "Samples", "Water_Isotope_Data", "Climate_Data", "Projects")){
   
   options(stringsAsFactors = FALSE)
   
@@ -41,20 +41,16 @@ post.metadata = function(fname, newproj, prefix){
   }
   
   #####Figure out what needs to be imported
-  SitesYN = T
-  SamplesYN = T
-  if(newproj == "Y"){ 
-    ProjectsYN = T } else{
-      ProjectsYN = F
-    }
-  AnalysisYN = T
-  ClimateYN = T
+  SitesYN = SamplesYN = ProjectsYN = AnalysisYN = ClimateYN = FALSE
+  if("Sites" %in% sheets){SitesYN = TRUE}
+  if("Samples" %in% sheets){SamplesYN = TRUE}
+  if("Projects" %in% sheets){ProjectsYN = TRUE}
+  if("Water_Isotope_Data" %in% sheets){AnalysisYN = TRUE}
+  if("Climate_Data" %in% sheets){ClimateYN = TRUE}
   if(csvImport){
-    if(!file.exists(siteFile)) SitesYN = F
-    if(!file.exists(samplesFile)) SamplesYN = F
-    if(!file.exists(projectFile)) ProjectsYN = F
-    AnalysisYN = F
-    ClimateYN = F
+    if(file.exists(siteFile)) SitesYN = TRUE
+    if(file.exists(samplesFile)) SamplesYN = TRUE
+    if(file.exists(projectFile)) ProjectsYN = TRUE
   }
   
   #####Check and load Sites data
@@ -146,8 +142,7 @@ post.metadata = function(fname, newproj, prefix){
                                                     "character", "numeric", "numeric", 
                                                     "character", "character", "numeric", 
                                                     "character", "integer", "character", 
-                                                    "character"),
-                        stringsAsFactors = F, encoding = "UTF-8")
+                                                    "character"), encoding = "UTF-8")
       #protection, sometings extrenouous characters are read depending on encoding...
       names(tmpdat)[1] = "Sample_ID"
     } else {
@@ -183,7 +178,8 @@ post.metadata = function(fname, newproj, prefix){
         }
         
         #Check for duplicate row
-        duprow = sqlQuery(channel, paste0("SELECT Sample_ID FROM Samples WHERE Sample_ID = '", tmpdat$Sample_ID[i], "'"))
+        duprow = sqlQuery(channel, paste0("SELECT Sample_ID FROM Samples WHERE Sample_ID = '", 
+                                          tmpdat$Sample_ID[i], "'"))
         if(nrow(duprow) > 0) {
           dups = dups+1
           dupIDs = rbind(dupIDs, as.character(duprow$Sample_ID))
@@ -206,7 +202,19 @@ post.metadata = function(fname, newproj, prefix){
               startDate = as.POSIXct(startDate) 
             }
           } else {
-            startDate = tmpdat$Start_Date[i]
+            if(typeof(tmpdat$Start_Date[i]) == "character"){
+              startDate = as.POSIXct(tmpdat$Start_Date[i], 
+                                          tryFormats = c("%m/%d/%Y %H:%M", 
+                                                         "%m/%d/%Y", 
+                                                         "%Y-%m-%d %H:%M:%OS",
+                                                         "%Y/%m/%d %H:%M:%OS",
+                                                         "%Y-%m-%d %H:%M",
+                                                         "%Y/%m/%d %H:%M",
+                                                         "%Y-%m-%d",
+                                                         "%Y/%m/%d"))
+            } else{
+              startDate = tmpdat$Start_Date[i]
+            }
           }
           
           #then Collection
@@ -224,13 +232,26 @@ post.metadata = function(fname, newproj, prefix){
               collectionDate = as.POSIXct(collectionDate) 
             }
           } else {
-            collectionDate = tmpdat$Collection_Date[i]
+            if(typeof(tmpdat$Collection_Date[i]) == "character"){
+              collectionDate = as.POSIXct(tmpdat$Collection_Date[i], 
+                                          tryFormats = c("%m/%d/%Y %H:%M", 
+                                                         "%m/%d/%Y", 
+                                                         "%Y-%m-%d %H:%M:%OS",
+                                                         "%Y/%m/%d %H:%M:%OS",
+                                                         "%Y-%m-%d %H:%M",
+                                                         "%Y/%m/%d %H:%M",
+                                                         "%Y-%m-%d",
+                                                         "%Y/%m/%d"))
+            } else{
+              collectionDate = tmpdat$Collection_Date[i]
+            }
           }
           
           #set Project ID if requested
           if(newproj=="Y"){tmpdat$Project_ID[i]=nextproj}
           #create data string
-          dat = paste0("('",tmpdat$Sample_ID[i],"','",tmpdat$Sample_ID_2[i],"','",tmpdat$Site_ID[i],"','",tmpdat$Type[i],"','",startDate,"','",
+          dat = paste0("('",tmpdat$Sample_ID[i],"','",tmpdat$Sample_ID_2[i],"','",tmpdat$Site_ID[i],"','",
+                       tmpdat$Type[i],"','",startDate,"','",
                        tmpdat$Start_Time_Zone[i],"','", collectionDate,"','", tmpdat$Collection_Time_Zone[i], "','",
                        tmpdat$Sample_Volume_ml[i],"','",tmpdat$Collector_type[i],"','",
                        tmpdat$Phase[i],"',",tmpdat$Depth_meters[i],",'",tmpdat$Sample_Source[i],"',",
@@ -253,6 +274,7 @@ post.metadata = function(fname, newproj, prefix){
       writeLines("")
     }
   }
+  
   #####Check and load Water Isotope data
   if(AnalysisYN){
     #Note anlayses will never be present for wiSamples csv import
@@ -283,7 +305,8 @@ post.metadata = function(fname, newproj, prefix){
         }
         
         #Check for duplicate row
-        duprow = sqlQuery(channel, paste0("SELECT WI_Analysis_ID FROM Water_Isotope_Data WHERE WI_Analysis_ID = '", tmpdat$WI_Analysis_ID[i], "'"))
+        duprow = sqlQuery(channel, paste0("SELECT WI_Analysis_ID FROM Water_Isotope_Data WHERE WI_Analysis_ID = '", 
+                                          tmpdat$WI_Analysis_ID[i], "'"))
         if(nrow(duprow) > 0) {
           dups = dups+1
           dupIDs = rbind(dupIDs, as.character(duprow$WI_Analysis_ID))
@@ -293,10 +316,13 @@ post.metadata = function(fname, newproj, prefix){
           for(j in 10:ncol(tmpdat)){tmpdat[i,j] = gsub("'", "_", tmpdat[i,j])}
   
           #create data string
-          dat = paste0("('",tmpdat$WI_Analysis_ID[i],"','",tmpdat$Sample_ID[i],"',",tmpdat$d2H[i],",",tmpdat$d18O[i],",",
+          dat = paste0("('",tmpdat$WI_Analysis_ID[i],"','",tmpdat$Sample_ID[i],"',",tmpdat$d2H[i],",",
+                       tmpdat$d18O[i],",",
                        tmpdat$D17O[i],",",tmpdat$d2H_Analytical_SD[i],",",tmpdat$d18O_Analytical_SD[i],",",
-                       tmpdat$D17O_Analytical_SD[i],",'",tmpdat$WI_Analysis_Date[i],"','",tmpdat$WI_Analysis_Source[i],"','",
-                       tmpdat$WI_Analysis_Instrument[i],"',",tmpdat$WI_Analysis_Ignore[i],",'",tmpdat$WI_Analysis_Comments[i],"')")
+                       tmpdat$D17O_Analytical_SD[i],",'",tmpdat$WI_Analysis_Date[i],"','",
+                       tmpdat$WI_Analysis_Source[i],"','",
+                       tmpdat$WI_Analysis_Instrument[i],"',",tmpdat$WI_Analysis_Ignore[i],",'",
+                       tmpdat$WI_Analysis_Comments[i],"')")
 
           #SQL style Nulls
           dat = gsub("'NA'","NULL",dat)
@@ -341,7 +367,8 @@ post.metadata = function(fname, newproj, prefix){
         }
         
         #Check for duplicate row
-        duprow = sqlQuery(channel, paste0("SELECT Climate_ID FROM Climate_Data WHERE Climate_ID = '", tmpdat$Climate_ID[i], "'"))
+        duprow = sqlQuery(channel, paste0("SELECT Climate_ID FROM Climate_Data WHERE Climate_ID = '", 
+                                          tmpdat$Climate_ID[i], "'"))
         if(nrow(duprow) > 0) {
           dups = dups+1
           dupIDs = rbind(dupIDs, as.character(duprow$Climate_ID))
@@ -351,9 +378,11 @@ post.metadata = function(fname, newproj, prefix){
           for(j in 8:ncol(tmpdat)){tmpdat[i,j] = gsub("'", "_", tmpdat[i,j])}
           
           #create data string
-          dat = paste0("('",tmpdat$Climate_ID[i],"','",tmpdat$Sample_ID[i],"',",tmpdat$Precipitation_mm[i],",",tmpdat$Mean_Temperature_C[i],",",
-                       tmpdat$Min_Temperature_C[i],",",tmpdat$Max_Temperature_C[i],",",tmpdat$Vapor_Pressure_hPa[i],",",
-                       tmpdat$Climate_Source[i],",'",tmpdat$Climate_Comments[i],"')")
+          dat = paste0("('",tmpdat$Climate_ID[i], "','", tmpdat$Sample_ID[i], "',",
+                       tmpdat$Precipitation_mm[i], ",", tmpdat$Mean_Temperature_C[i], ",",
+                       tmpdat$Min_Temperature_C[i], ",", tmpdat$Max_Temperature_C[i], ",",
+                       tmpdat$Vapor_Pressure_hPa[i], ",", tmpdat$Climate_Source[i], ",'",
+                       tmpdat$Climate_Comments[i],"')")
           #SQL style Nulls
           dat = gsub("'NA'","NULL",dat)
           dat = gsub("NA,","NULL,",dat)
@@ -379,10 +408,21 @@ post.metadata = function(fname, newproj, prefix){
       tmpdat = read.csv(projectFile, colClasses = c("character", "character", "character",
                                            "character", "character", "character",
                                            "integer"), encoding = "UTF-8")
+      #app output doesn't currently contain License field
+      tmpdat$License = rep("", nrow(tmpdat))
     } else {
-      tmpdat = read_excel(fname, sheet="Projects", col_names = TRUE, na = "",
-                          col_types = c("text", "text", "text", "text", "text",
-                                        "text", "numeric"))
+      tmpdat = read_excel(fname, sheet="Projects", col_names = TRUE, na = "")
+      if(ncol(tmpdat) == 8){
+        tmpdat = read_excel(fname, sheet="Projects", col_names = TRUE, na = "",
+                            col_types = c("text", "text", "text", "text", "text",
+                                          "text", "text", "numeric"))        
+      } else {
+        tmpdat = read_excel(fname, sheet="Projects", col_names = TRUE, na = "",
+                            col_types = c("text", "text", "text", "text", "text",
+                                          "text", "numeric"))
+        tmpdat$License = rep("", nrow(tmpdat))
+      }
+
     }
     
     #Set up accounting
@@ -401,19 +441,23 @@ post.metadata = function(fname, newproj, prefix){
           tmpdat$Project_ID[i] = nextproj
         #otherwise check for empty row  
         } else if(is.na(tmpdat$Project_ID[i])) {
+          warning("No Project_ID, skipping row")
           err = err+1
           next()
         }
         
         #Check for duplicate row
-        duprow = sqlQuery(channel, paste0("SELECT Project_ID FROM Projects WHERE Project_ID = '", tmpdat$Project_ID[i], "'"))
+        duprow = sqlQuery(channel, paste0("SELECT Project_ID FROM Projects WHERE Project_ID = '", 
+                                          tmpdat$Project_ID[i], "'"))
         if(nrow(duprow) > 0) {
           dups = dups+1
           dupIDs = rbind(dupIDs, as.character(duprow$Project_ID))
         } else {
           #create data string
-          dat = paste0("('",tmpdat$Project_ID[i],"','",tmpdat$Contact_Name[i],"','",tmpdat$Contact_Email[i],"','",tmpdat$Citation[i],"','",
-                       tmpdat$URL[i],"','",tmpdat$Project_Name[i],"',",tmpdat$Proprietary[i],")")
+          dat = paste0("('", tmpdat$Project_ID[i], "','", tmpdat$Contact_Name[i], "','",
+                       tmpdat$Contact_Email[i], "','", tmpdat$Citation[i], "','",
+                       tmpdat$URL[i], "','", tmpdat$Project_Name[i], "','", 
+                       tmpdat$License[i], "',", tmpdat$Proprietary[i], ")")
           
           #SQL style Nulls
           dat = gsub("'NA'","NULL",dat)
@@ -421,7 +465,7 @@ post.metadata = function(fname, newproj, prefix){
           dat = gsub("''", "NULL", dat)
           
           #Insert data
-          sqlQuery(channel, paste0("INSERT INTO Projects (Project_ID,Contact_Name,Contact_Email,Citation,URL,Project_Name,Proprietary) VALUES ",
+          sqlQuery(channel, paste0("INSERT INTO Projects VALUES ",
                                    dat))
           good = good+1
         }
@@ -438,113 +482,128 @@ post.metadata = function(fname, newproj, prefix){
   close(channel)
 }
 
+#####
+#DELETE
+#####
 
-delete.metadata = function(fname){
+delete.metadata = function(fname, sheets = c("Sites", "Samples", "Water_Isotope_Data", "Projects")){
   
   library(readxl)
   library(RODBC)
   channel = odbcConnect("WIDB")
   
   #####Check and delete Sites data
-  tmpdat = read_excel(fname, sheet="Sites", col_names = TRUE)
-  err=0
-  good=0
-  if(nrow(tmpdat)>0){
-    for(i in 1:nrow(tmpdat)){
-      
-      #Check for empty row
-      if(is.na(tmpdat$Site_ID[i])) {
-        err = err+1
-        next()
-      }
-      
-      #Check for duplicate row
-      duprow = sqlQuery(channel, paste0("SELECT Site_ID FROM Sites WHERE Site_ID = '", tmpdat$Site_ID[i], "'"))
-      if(nrow(duprow) > 0) {
-        sqlQuery(channel, paste0("DELETE FROM Sites WHERE Site_ID = '", tmpdat$Site_ID[i], "'"))
-        good = good+1
+  if("Sites" %in% sheets){
+    tmpdat = read_excel(fname, sheet="Sites", col_names = TRUE)
+    err=0
+    good=0
+    if(nrow(tmpdat)>0){
+      for(i in 1:nrow(tmpdat)){
+        
+        #Check for empty row
+        if(is.na(tmpdat$Site_ID[i])) {
+          err = err+1
+          next()
+        }
+        
+        #Check for duplicate row
+        duprow = sqlQuery(channel, paste0("SELECT Site_ID FROM Sites WHERE Site_ID = '", tmpdat$Site_ID[i], "'"))
+        if(nrow(duprow) > 0) {
+          sqlQuery(channel, paste0("DELETE FROM Sites WHERE Site_ID = '", tmpdat$Site_ID[i], "'"))
+          good = good+1
+        }
       }
     }
+    writeLines(paste0("Sites\n", nrow(tmpdat)-err, " total rows\n", good, " deleted\n"))
   }
-  writeLines(paste0("Sites\n", nrow(tmpdat)-err, " total rows\n", good, " deleted\n"))
-  
+
   
   #####Check and delete Samples data
-  tmpdat = read_excel(fname, sheet="Samples", col_names = TRUE)
-  err=0
-  good=0
-  
-  #Force factors to strings
-  tmpdat$Sample_ID = as.character(tmpdat$Sample_ID)
-  tmpdat$Sample_ID_2 = as.character(tmpdat$Sample_ID_2)
-  
-  if(nrow(tmpdat) > 0){
-    for(i in 1:nrow(tmpdat)){
-      #Check for empty row
-      if(is.na(tmpdat$Sample_ID[i])) {
-        err = err+1
-        next()
+  if("Samples" %in% sheets){
+    tmpdat = read_excel(fname, sheet="Samples", col_names = TRUE)
+    err=0
+    good=0
+    
+    #Force factors to strings
+    tmpdat$Sample_ID = as.character(tmpdat$Sample_ID)
+    tmpdat$Sample_ID_2 = as.character(tmpdat$Sample_ID_2)
+    
+    if(nrow(tmpdat) > 0){
+      for(i in 1:nrow(tmpdat)){
+        #Check for empty row
+        if(is.na(tmpdat$Sample_ID[i])) {
+          err = err+1
+          next()
+        }
+        
+        #concatenate IDs if ID2 included
+        if(is.na(tmpdat$Sample_ID_2[i])){}else{
+          tmpdat$Sample_ID[i] = paste0(tmpdat$Sample_ID_2[i], "_", tmpdat$Sample_ID[i])
+          }
+        
+        #Check for duplicate row
+        duprow = sqlQuery(channel, paste0("SELECT Sample_ID FROM Samples WHERE Sample_ID = '", 
+                                          tmpdat$Sample_ID[i], "'"))
+        if(nrow(duprow) > 0) {
+          sqlQuery(channel, paste0("DELETE FROM Samples WHERE Sample_ID = '", tmpdat$Sample_ID[i], "'"))
+          good = good+1
+        }
       }
+    }
+    writeLines(paste0("Samples\n", nrow(tmpdat)-err, " total rows\n", good, " deleted\n"))
+  }
 
-      #concatenate IDs if ID2 included
-      if(is.na(tmpdat$Sample_ID_2[i])){}else{tmpdat$Sample_ID[i] = paste0(tmpdat$Sample_ID_2[i], "_", tmpdat$Sample_ID[i])}
-      
-      #Check for duplicate row
-      duprow = sqlQuery(channel, paste0("SELECT Sample_ID FROM Samples WHERE Sample_ID = '", tmpdat$Sample_ID[i], "'"))
-      if(nrow(duprow) > 0) {
-        sqlQuery(channel, paste0("DELETE FROM Samples WHERE Sample_ID = '", tmpdat$Sample_ID[i], "'"))
-        good = good+1
-      }
-    }
-  }
-  writeLines(paste0("Samples\n", nrow(tmpdat)-err, " total rows\n", good, " deleted\n"))
-  
-  
   #####Check and delete Water Isotope data
-  tmpdat = read_excel(fname, sheet="Water_Isotope_Data", col_names = TRUE)
-  err=0
-  good=0
-  if(nrow(tmpdat) > 0){
-    for(i in 1:nrow(tmpdat)){
-      #Check for empty row
-      if(is.na(tmpdat$WI_Analysis_ID[i])) {
-        err = err+1
-        next()
-      }
-      
-      #Check for duplicate row
-      duprow = sqlQuery(channel, paste0("SELECT WI_Analysis_ID FROM Water_Isotope_Data WHERE WI_Analysis_ID = '", tmpdat$WI_Analysis_ID[i], "'"))
-      if(nrow(duprow) > 0) {
-        sqlQuery(channel, paste0("DELETE FROM Water_Isotope_Data WHERE WI_Analysis_ID = '", tmpdat$WI_Analysis_ID[i], "'"))
-        good = good+1
+  if("Water_Isotope_Data" %in% sheets){
+    tmpdat = read_excel(fname, sheet="Water_Isotope_Data", col_names = TRUE)
+    err=0
+    good=0
+    if(nrow(tmpdat) > 0){
+      for(i in 1:nrow(tmpdat)){
+        #Check for empty row
+        if(is.na(tmpdat$WI_Analysis_ID[i])) {
+          err = err+1
+          next()
+        }
+        
+        #Check for duplicate row
+        duprow = sqlQuery(channel, paste0("SELECT WI_Analysis_ID FROM Water_Isotope_Data WHERE WI_Analysis_ID = '",
+                                          tmpdat$WI_Analysis_ID[i], "'"))
+        if(nrow(duprow) > 0) {
+          sqlQuery(channel, paste0("DELETE FROM Water_Isotope_Data WHERE WI_Analysis_ID = '", 
+                                   tmpdat$WI_Analysis_ID[i], "'"))
+          good = good+1
+        }
       }
     }
+    writeLines(paste0("Analyses\n", nrow(tmpdat)-err, " total rows\n", good, " deleted\n"))
   }
-  writeLines(paste0("Analyses\n", nrow(tmpdat)-err, " total rows\n", good, " deleted\n"))
-  
   
   #####Check and delete Projects data
-  tmpdat = read_excel(fname, sheet="Projects", col_names = TRUE)
-  err=0
-  good=0
-  if(nrow(tmpdat)>0){
-    for(i in 1:nrow(tmpdat)){
-      
-      #Check for empty row
-      if(is.na(tmpdat$Project_ID[i])) {
-        err = err+1
-        next()
-      }
-      
-      #Check for duplicate row
-      duprow = sqlQuery(channel, paste0("SELECT Project_ID FROM Projects WHERE Project_ID = '", tmpdat$Project_ID[i], "'"))
-      if(nrow(duprow) > 0) {
-        sqlQuery(channel, paste0("DELETE FROM Projects WHERE Project_ID = '", tmpdat$Project_ID[i], "'"))
-        good = good+1
+  if("Projects" %in% sheets){
+    tmpdat = read_excel(fname, sheet="Projects", col_names = TRUE)
+    err=0
+    good=0
+    if(nrow(tmpdat)>0){
+      for(i in 1:nrow(tmpdat)){
+        
+        #Check for empty row
+        if(is.na(tmpdat$Project_ID[i])) {
+          err = err+1
+          next()
+        }
+        
+        #Check for duplicate row
+        duprow = sqlQuery(channel, paste0("SELECT Project_ID FROM Projects WHERE Project_ID = '", 
+                                          tmpdat$Project_ID[i], "'"))
+        if(nrow(duprow) > 0) {
+          sqlQuery(channel, paste0("DELETE FROM Projects WHERE Project_ID = '", tmpdat$Project_ID[i], "'"))
+          good = good+1
+        }
       }
     }
+    writeLines(paste0("Projects\n", nrow(tmpdat)-err, " total rows\n", good, " deleted\n"))
   }
-  writeLines(paste0("Projects\n", nrow(tmpdat)-err, " total rows\n", good, " deleted\n"))
   
   close(channel)
 }
