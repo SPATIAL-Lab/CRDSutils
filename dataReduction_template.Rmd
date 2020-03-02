@@ -1,0 +1,52 @@
+---
+title: "CRDS HO Data Reduction"
+author: "Gabe Bowen"
+date: "`r format(Sys.Date(), '%d %b %Y')`"
+output:
+  html_document: 
+    df_print: paged
+    number_sections: yes
+    toc: yes
+    toc_float: true
+    toc_depth: 3
+    code_folding: show
+editor_options:
+  chunk_output_type: console
+---
+
+# Set Up
+
+Load functions.
+
+```{r load}
+library(sf)
+```
+
+Set variables.
+
+```{r variables}
+runDate = "2020-02-19"
+instrument = "hids2052"
+analyst = "Jerry Garcia"  
+```
+
+# Check Files
+
+```{r check}
+files = file_lookup(instrument, runDate)
+check_files(files)
+```
+
+# Calibrate Data
+
+```{r calibrate}
+corrected = process_data(files)
+review_data(corrected)
+```
+
+# Write Output
+
+```{r write}
+#db(corrected, analyst)
+excel(files$ids.file,corrected)
+```
