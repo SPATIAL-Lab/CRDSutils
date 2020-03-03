@@ -18,6 +18,7 @@ file_lookup <- function(instrument, runDate){
   ## to match the formatting of the Dropbox file for that instrument
   ## (ie. hids2053, hids2052 or hids2046)
   
+  if(nchar(runDate != 10)){stop("runDate format must be YYYY-MM-DD")}
   runDate = paste0(substr(runDate, 3, 4), substr(runDate, 6, 7), 
                    substr(runDate, 9, 10))
   ## change runDate to format yymmdd (eg. 150310)
