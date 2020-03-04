@@ -216,10 +216,14 @@ cal.reg <- function(data, qa.file){
   
   o.known <- c(qa$d18O_known[qa$parameter=="plrm1"],
                 qa$d18O_known[qa$parameter=="plrm2"])
+  o.known.sd = c(qa$d18O_sd[qa$parameter=="plrm1"],
+           qa$d18O_sd[qa$parameter=="plrm2"])
   ## creates a vector with the known d18O values for plrm1 & plrm2
   
   h.known <- c(qa$d2H_known[qa$parameter=="plrm1"],
                qa$d2H_known[qa$parameter=="plrm2"])
+  h.known.sd = c(qa$d2H_sd[qa$parameter=="plrm1"],
+           qa$d2H_sd[qa$parameter=="plrm2"])
   ## creates a vector with the known d18O values for plrm1 & plrm2
   
   plrm1 <- qa$ID[qa$parameter=="plrm1"]
@@ -228,26 +232,44 @@ cal.reg <- function(data, qa.file){
   plrm2 <- qa$ID[qa$parameter=="plrm2"]
   ## creates a character string with the sampleID for plrm2
 
-  o.meas <- c(mean(tail(data$d18O_mc[data$ID==plrm1],n=4)),
-              mean(tail(data$d18O_mc[data$ID==plrm2], n=4)))
+  o.meas <- c(mean(tail(data$d18O_dc[data$ID==plrm1],n=4)),
+              mean(tail(data$d18O_dc[data$ID==plrm2], n=4)))
+  o.meas.sd <- c(sd(tail(data$d18O_dc[data$ID==plrm1],n=4)),
+              sd(tail(data$d18O_dc[data$ID==plrm2], n=4)))
   ## creates a vector with the mean measured d18O values for 
   ## plrm1 and plrm 2 using the last 4 injections 
   
-  h.meas <- c(mean(tail(data$d2H_mc[data$ID==plrm1],n=4)),
-              mean(tail(data$d2H_mc[data$ID==plrm2], n=4)))
+  h.meas <- c(mean(tail(data$d2H_dc[data$ID==plrm1],n=4)),
+              mean(tail(data$d2H_dc[data$ID==plrm2], n=4)))
+  h.meas.sd <- c(sd(tail(data$d2H_dc[data$ID==plrm1],n=4)),
+              sd(tail(data$d2H_dc[data$ID==plrm2], n=4)))
   ## creates a vector with the mean measured d2H values for 
   ## plrm1 and plrm 2 using the last 4 injections  
   
-  o <- lm(o.known ~ o.meas) 
+  o.known.sim = matrix(c(rnorm(1000, o.known[1], o.known.sd[1]),
+                           rnorm(1000, o.known[2], o.known.sd[2])), ncol=2)
+  
+  h.known.sim = matrix(c(rnorm(1000, h.known[1], h.known.sd[1]),
+                           rnorm(1000, h.known[2], h.known.sd[2])), ncol=2)
+
+  o.meas.sim = matrix(c(rnorm(1000, o.meas[1], o.meas.sd[1]),
+                           rnorm(1000, o.meas[2], o.meas.sd[2])), ncol=2)
+  
+  h.meas.sim = matrix(c(rnorm(1000, h.meas[1], h.meas.sd[1]),
+                           rnorm(1000, h.meas[2], h.meas.sd[2])), ncol=2)
+  
+  o.slope = apply(o.known.sim, 1, diff) / apply(o.meas.sim, 1, diff)
+  o.int = o.known.sim[,1] - o.slope * o.meas.sim[,1]
   ##regression for d18O
   
-  h <- lm(h.known ~ h.meas)
+  h.slope = apply(h.known.sim, 1, diff) / apply(h.meas.sim, 1, diff)
+  h.int = h.known.sim[,1] - h.slope * h.meas.sim[,1]
   ##regression for d2H
   
-  return(list(o.slope=o$coefficients[[2]], 
-              o.int=o$coefficients[[1]],
-              h.slope=h$coefficients[[2]], 
-              h.int=h$coefficients[[1]]))
+  return(list(o.slope = o.slope, 
+              o.int = o.int,
+              h.slope = h.slope, 
+              h.int = h.int))
 }
 
 #####################################################################
@@ -263,8 +285,8 @@ data.cal <- function(data,element,cal){
   ## element is either "O" or "H"
   ## cal is the list created using the cal.reg function
   
-  col<-if(element =="O"){data$d18O_mc}else if(
-    element=="H"){data$d2H_mc} 
+  uncalData<-if(element =="O"){data$d18O_dc}else if(
+    element=="H"){data$d2H_dc} 
   ##dictates column used
   
   cal.slope <-if(element=="O"){cal$o.slope
@@ -275,12 +297,19 @@ data.cal <- function(data,element,cal){
   }else if(element=="H"){cal$h.int} 
   ## dictates intercept used
   
-  col.cal <- col * cal.slope + cal.int
+  calMean = calSD = double()
+  
+  for(i in 1:length(uncalData)){
+    calData = uncalData[i] * cal.slope + cal.int
+    calMean = c(calMean, mean(calData))
+    calSD = c(calSD, sd(calData))
+  }
+
   ## calculates calibrated values for the
   ## specified column. Format is 
   ## memory-corrected value * slope + intercept
   
-  return(col.cal)
+  return(list(calMean = calMean, calSD = calSD))
 }
 
 #####################################################################
@@ -291,7 +320,7 @@ data.cal <- function(data,element,cal){
 ##           the sequence of that port in the run                  ##
 #####################################################################
 
-drift.reg <- function(data,qa.file){
+drift.reg <- function(data, qa.file, genPlot){
   ## data is the dataframe created using the data.mod function and 
   ## updated using the data.mc function and data.cal function
   ## qa.file is the filename of a csv as described in the cal.reg 
@@ -306,19 +335,34 @@ drift.reg <- function(data,qa.file){
   data.slrm <- data[data$ID==slrm & data$Port > 1 & data$inj <= 4,]
   ## subsets data to include only slrm water and excluding port 1
   
-  avg <- aggregate(data.slrm[,c("d18O_cal","d2H_cal")],
-                             by=list(Port = data.slrm$Port),mean)
-  ## calculates mean for d18O & d2H calibrated values for each port
-  
-  avg$Sequence <- avg$Port-4
+  data.slrm$seqN <- data.slrm$seqN - 20
   ## creates a column for sequence that subtracts 4 from each port
   ## number so that the first value is 0
   
-  o <- lm(avg$d18O_cal ~ avg$Sequence) 
+  o <- lm(data.slrm$d18O_mc ~ data.slrm$seqN) 
   ##regression of mean d18O value against sequence
   
-  h <- lm(avg$d2H_cal ~ avg$Sequence) 
+  h <- lm(data.slrm$d2H_mc ~ data.slrm$seqN) 
   ##regression of mean d2H value against sequence
+  
+  if(genPlot){
+    par(mar = c(5,5,1,5))
+    plot(data.slrm$seqN, data.slrm$d18O_mc, pch=21, bg = "light blue",
+         ylab = "d18O", xlab = "Sequence number")
+    conf = predict(o, newdata=data.frame(x=data.slrm$seqN), 
+                   interval="confidence", level = 0.95)
+    lines(data.slrm$seqN, conf[,1], col = "light blue")
+    matlines(data.slrm$seqN, conf[,2:3], lty = 2, col = "light blue")
+    par(new = TRUE)
+    plot(data.slrm$seqN, data.slrm$d2H_mc, pch=21, bg = "red", axes = FALSE,
+         ylab = "", xlab = "")
+    axis(4)
+    mtext("d2H", 4, 3)
+    conf = predict(h, newdata=data.frame(x=data.slrm$seqN), 
+                   interval="confidence", level = 0.95)
+    lines(data.slrm$seqN, conf[,1], col = "red")
+    matlines(data.slrm$seqN, conf[,2:3], lty = 2, col = "red")
+  }
   
   return(list(o = o$coefficients[[2]], h = h$coefficients[[2]]))
 }
@@ -334,44 +378,50 @@ data.dc <- function(data, drift){
   ## updated using the data.mc function and data.cal function
   ## drift is the list created using the drift.reg function
   
-  data.s <- data[data$Port>=4 & data$inj <= 4,]
-  ## subsets data to exclude ports 1-3 & injs >4
+  data <- data[data$Port > 1,]
+  ## subsets data to exclude ports 1
   
-  avg <- aggregate(data.s[,c("d18O_cal","d2H_cal")],
-                             by=list(Port = data.s$Port,
-                                     ID=data.s$ID, ID2 = data.s$ID2),
-                   mean, na.rm = T)
-  ## calculates mean for d18O & d2H calibrated values for each port
+  data$seqN <- data$seqN - 20
+  ## subtracts 20 from sequence
+  ## number so that the calibration midpoint is 0
   
-  names(avg) <- c("Port","ID","ID2","d18O_avg","d2H_avg")
-  ## renames columns in avg
-  
-  sd <- aggregate(data.s[,c("d18O_cal","d2H_cal")],
-                   by=list(Port = data.s$Port,ID=data.s$ID, 
-                           ID2 = data.s$ID2),sd, na.rm = T)
-  ## calculates sd for d18O & d2H calibrated values for each port
-  
-  names(sd) <- c("Port","ID","ID2","d18O_sd","d2H_sd")
-  ## renames columns in sd
-  
-  avg <- merge(avg,sd,by=c("Port","ID","ID2"))
-  ## merges avg & sd by Port & ID
-  
-  avg$Sequence <- avg$Port-4
-  ## creates a column for sequence that subtracts 4 from each port
-  ## number so that the first value is 0
-  
-  avg$d18O_dc <- avg$d18O_avg - avg$Sequence * drift$o
+  data$d18O_dc <- data$d18O_mc - data$seqN * drift$o
   ## calculates drift-corrected values for d18O
   
-  avg$d2H_dc <- avg$d2H_avg - avg$Sequence * drift$h
+  data$d2H_dc <- data$d2H_mc - data$seqN * drift$h
   ## calculates drift-corrected values for d2H
   
-  avg <- avg[with(avg,order(Port)),]
-  ## sorts avg by port
-  
-  return(avg)
+  return(data)
 }
+
+combine = function(data){
+  avg <- aggregate(data[,c("d18O_cm","d2H_cm")],
+                   by=list(Port = data$Port,
+                           ID=data$ID, ID2 = data$ID2),
+                   mean, na.rm = T)
+  stdev <- aggregate(data[,c("d18O_cm","d2H_cm")],
+                   by=list(Port = data$Port,
+                           ID=data$ID, ID2 = data$ID2),
+                   sd, na.rm = T)
+  n <- aggregate(data[,"ID"],
+                 by=list(Port = data$Port,
+                         ID=data$ID, ID2 = data$ID2),
+                 length)
+  stdev$d18O_cm = stdev$d18O_cm / sqrt(n$x)
+  stdev$d2H_cm = stdev$d2H_cm / sqrt(n$x)
+  stdev.ave <- aggregate(data[,c("d18O_csd","d2H_csd")],
+                     by=list(Port = data$Port,
+                             ID=data$ID, ID2 = data$ID2),
+                     mean, na.rm = T)
+  stdev$d18O_cm = sqrt(stdev$d18O_cm ^ 2 + stdev.ave$d18O_csd ^ 2)
+  stdev$d2H_cm = sqrt(stdev$d2H_cm ^ 2 + stdev.ave$d2H_csd ^ 2)
+  
+  names(avg)[4:5] = c("d18O_avg", "d2H_avg")
+  names(stdev)[4:5] = c("d18O_sd", "d2H_sd")
+  
+  return(merge(avg, stdev, by=c("Port","ID","ID2")))
+}
+
 
 #####################################################################
 ##                        qa.flag function                         ##
@@ -393,16 +443,16 @@ qa.flag <- function(data, qa.file){
   slrm <- qa$ID[qa$parameter=="slrm"]
   ## creates a character string with the sampleID for slrm
   
-  slrm.o <- mean(data$d18O_dc[data$ID==slrm],na.rm=T)
+  slrm.o <- mean(data$d18O_avg[data$ID==slrm],na.rm=T)
   ## calculates mean for slrm d18O
   
-  slrm.h <- mean(data$d2H_dc[data$ID==slrm],na.rm=T)
+  slrm.h <- mean(data$d2H_avg[data$ID==slrm],na.rm=T)
   ## calculates mean for slrm d2H
   
-  slrm.o.sd <- sd(data$d18O_dc[data$ID==slrm],na.rm=T)
+  slrm.o.sd <- sd(data$d18O_avg[data$ID==slrm],na.rm=T)
   ## calculates sd for slrm d18O
   
-  slrm.h.sd <- sd(data$d2H_dc[data$ID==slrm],na.rm=T)
+  slrm.h.sd <- sd(data$d2H_avg[data$ID==slrm],na.rm=T)
   ## calculates sd for slrm d2H
   
   slrm.o.max <- qa$max[qa$parameter=="slrm_O_range"]

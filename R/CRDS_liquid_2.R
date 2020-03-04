@@ -165,6 +165,9 @@ process_data <- function(files){
                  ids.file = files$ids.file)
   ## data.mod function modifies & merges the data & sample ids files
   
+  # add sequence number per injection
+  df$seqN = seq_along(df[,1])
+  
   mem <- mc.terms(df,3:4,1:10)
   ## mc.terms function generates memory-correction terms for the data
   
@@ -176,17 +179,7 @@ process_data <- function(files){
   ## here the data.mc function applies memory-correction terms to the 
   ## d2H data
   
-  cal <- cal.reg(df,qa.file)
-  ## cal.reg function calculates a regression line using the known & 
-  ## measured values for the d18O & d2H data separately
-  
-  df$d18O_cal <- data.cal(df,"O",cal)
-  ## here the data.cal function calibrates the d18O data
-  
-  df$d2H_cal <- data.cal(df,"H",cal)
-  ## here the data.cal function calibrates the d2H data
-  
-  drift <- drift.reg(df,qa.file)
+  drift <- drift.reg(df, qa.file, TRUE)
   ## drift.reg function calculates a regression line using the 
   ## mean value for each port with slrm and the sequence of the 
   ## port in the run for d18O & d2H data separately
@@ -194,12 +187,29 @@ process_data <- function(files){
   dc <- data.dc(df,drift)
   ## data.dc function applies the drift corrections to the data
   
-  flagged <- qa.flag(dc,qa.file)
+  cal <- cal.reg(dc,qa.file)
+  ## cal.reg function calculates a regression line using the known & 
+  ## measured values for the d18O & d2H data separately
+  
+  d18O_cal = data.cal(dc, "O", cal)
+  ## here the data.cal function calibrates the d18O data
+  
+  d2H_cal = data.cal(dc, "H", cal)
+  dc$d2H_cm = d2H_cal$calMean
+  dc$d2H_csd = d2H_cal$calSD
+
+  dcal = cbind(dc, d18O_cm = d18O_cal$calMean, d18O_csd = d18O_cal$calSD,
+               d2H_cm = d2H_cal$calMean, d2H_csd = d2H_cal$calSD)
+  ## here the data.cal function calibrates the d2H data
+  
+  da = combine(dcal)
+  
+  flagged <- qa.flag(da,qa.file)
   ## qa.flag function evaluates the data against the predetermined
   ## qa cutoffs and flags 
   
   qa.report <- qa.summary(files$data.file,qa.file,mem,drift,
-                          cal,flagged)
+                          unlist(lapply(cal, mean)),flagged)
   ## qa.summary function summarizes the qa metrics for the run
   
   last4.ref <- df[df$ID %in% refs & df$inj>=7 & df$Port>1,]
