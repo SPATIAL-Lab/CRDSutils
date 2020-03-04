@@ -27,7 +27,6 @@ Set variables.
 ```{r variables}
 runDate = "2020-02-19"
 instrument = "hids2052"
-analyst = "Jerry Garcia"  
 ```
 
 # Check Files

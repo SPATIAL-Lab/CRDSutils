@@ -348,7 +348,8 @@ drift.reg <- function(data, qa.file, genPlot){
   if(genPlot){
     par(mar = c(5,5,1,5))
     plot(data.slrm$seqN, data.slrm$d18O_mc, pch=21, bg = "light blue",
-         ylab = "d18O", xlab = "Sequence number")
+         ylab = "", xlab = "Sequence number")
+    mtext("d18O", 2, 3, col = "light blue")
     conf = predict(o, newdata=data.frame(x=data.slrm$seqN), 
                    interval="confidence", level = 0.95)
     lines(data.slrm$seqN, conf[,1], col = "light blue")
@@ -357,7 +358,7 @@ drift.reg <- function(data, qa.file, genPlot){
     plot(data.slrm$seqN, data.slrm$d2H_mc, pch=21, bg = "red", axes = FALSE,
          ylab = "", xlab = "")
     axis(4)
-    mtext("d2H", 4, 3)
+    mtext("d2H", 4, 3, col = "red")
     conf = predict(h, newdata=data.frame(x=data.slrm$seqN), 
                    interval="confidence", level = 0.95)
     lines(data.slrm$seqN, conf[,1], col = "red")
@@ -394,32 +395,33 @@ data.dc <- function(data, drift){
   return(data)
 }
 
-combine = function(data){
-  avg <- aggregate(data[,c("d18O_cm","d2H_cm")],
+#####
+# Collapse multiple injection data to averages and standard errors
+#####
+
+collapse = function(data){
+  #Average drift corrected isotope vals per port
+  avg <- aggregate(data[,c("d18O_dc","d2H_dc")],
                    by=list(Port = data$Port,
                            ID=data$ID, ID2 = data$ID2),
-                   mean, na.rm = T)
-  stdev <- aggregate(data[,c("d18O_cm","d2H_cm")],
-                   by=list(Port = data$Port,
-                           ID=data$ID, ID2 = data$ID2),
-                   sd, na.rm = T)
-  n <- aggregate(data[,"ID"],
-                 by=list(Port = data$Port,
-                         ID=data$ID, ID2 = data$ID2),
-                 length)
-  stdev$d18O_cm = stdev$d18O_cm / sqrt(n$x)
-  stdev$d2H_cm = stdev$d2H_cm / sqrt(n$x)
-  stdev.ave <- aggregate(data[,c("d18O_csd","d2H_csd")],
-                     by=list(Port = data$Port,
-                             ID=data$ID, ID2 = data$ID2),
-                     mean, na.rm = T)
-  stdev$d18O_cm = sqrt(stdev$d18O_cm ^ 2 + stdev.ave$d18O_csd ^ 2)
-  stdev$d2H_cm = sqrt(stdev$d2H_cm ^ 2 + stdev.ave$d2H_csd ^ 2)
+                   mean, na.rm = TRUE)
   
+  # Function for standard error of the mean
+  sem = function(x){
+    x = x[!is.na(x)]
+    sd(x)/sqrt(length(x))
+  }
+  
+  #standard error of isotope vals per port
+  sterr <- aggregate(data[,c("d18O_dc","d2H_dc")],
+                   by=list(Port = data$Port,
+                           ID=data$ID, ID2 = data$ID2),
+                   sem)
+
   names(avg)[4:5] = c("d18O_avg", "d2H_avg")
-  names(stdev)[4:5] = c("d18O_sd", "d2H_sd")
+  names(sterr)[4:5] = c("d18O_sem", "d2H_sem")
   
-  return(merge(avg, stdev, by=c("Port","ID","ID2")))
+  return(merge(avg, sterr, by=c("Port","ID","ID2")))
 }
 
 
