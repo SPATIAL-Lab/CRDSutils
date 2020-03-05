@@ -14,14 +14,10 @@
 init = function(){
   cfg = readLines(".crds.config")
   cfg = strsplit(cfg, "=")
-#  n = sapply(cfg, "[[", 1)
-#  v = sapply(cfg, "[[", 2)
-  
-#  cfgs = list()
-  for(i in cfg) {
+
+    for(i in cfg) {
     assign(i[1], i[2], envir = .GlobalEnv)
-#    cfgs = append(cfgs, v[i])
-#    names(cfgs)[i] = n[i]
+    message(paste(i[1], i[2], sep = "="))
   } 
   
   return()
@@ -34,7 +30,7 @@ init = function(){
 ##           machine and date using regular expressions            ## 
 #####################################################################
 
-file_lookup <- function(instrument, runDate){
+file_lookup <- function(instrument, runDate, dataPath){
   ## machine is the serial number of a Picarro instrument formatted 
   ## to match the formatting of the Dropbox file for that instrument
   ## (ie. hids2053, hids2052 or hids2046)
@@ -222,14 +218,13 @@ process_data <- function(files){
   ## measured values for the d18O & d2H data separately
   cal <- cal.reg(da, refFile)
   
-  d18O_cal = data.cal(dc, "O", cal)
   ## here the data.cal function calibrates the d18O data
+  d18O_cal = data.cal(da, "O", cal)
   
-  d2H_cal = data.cal(dc, "H", cal)
-  dc$d2H_cm = d2H_cal$calMean
-  dc$d2H_csd = d2H_cal$calSD
+  
+  d2H_cal = data.cal(da, "H", cal)
 
-  dcal = cbind(dc, d18O_cm = d18O_cal$calMean, d18O_csd = d18O_cal$calSD,
+  dcal = cbind(da, d18O_cm = d18O_cal$calMean, d18O_csd = d18O_cal$calSD,
                d2H_cm = d2H_cal$calMean, d2H_csd = d2H_cal$calSD)
   ## here the data.cal function calibrates the d2H data
   

@@ -27,12 +27,13 @@ Set variables.
 ```{r variables}
 runDate = "2020-02-19"
 instrument = "hids2052"
+init()
 ```
 
 # Check Files
 
 ```{r check}
-files = file_lookup(instrument, runDate)
+files = file_lookup(instrument, runDate, dataPath)
 check_files(files)
 ```
 

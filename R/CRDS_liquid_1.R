@@ -194,7 +194,7 @@ data.mc <- function(data,element,mc.terms){
 ##           measured values in the run                            ##
 #####################################################################
 
-cal.reg <- function(data, qa.file){
+cal.reg <- function(data, refFile){
   ## data is the dataframe created using the data.mod function and 
   ## updated with memory-corrected values using the data.mc function
   ## qa.file is the filename of a csv with 6 columns - 
@@ -211,40 +211,40 @@ cal.reg <- function(data, qa.file){
   ## > d18O_known=c(rep(NA,6),1.83,-16.44,-7.13),
   ## > d2H_known=c(rep(NA,6),17.2,-122.84,-46))
   
-  qa <- read.csv(qa.file,stringsAsFactors=FALSE) 
   ## reads in qa.file 
+  qa <- read.csv(refFile,stringsAsFactors=FALSE) 
   
+  ## creates a vector with the known d18O values for plrm1 & plrm2
   o.known <- c(qa$d18O_known[qa$parameter=="plrm1"],
                 qa$d18O_known[qa$parameter=="plrm2"])
   o.known.sd = c(qa$d18O_sd[qa$parameter=="plrm1"],
            qa$d18O_sd[qa$parameter=="plrm2"])
-  ## creates a vector with the known d18O values for plrm1 & plrm2
   
+  ## creates a vector with the known d18O values for plrm1 & plrm2
   h.known <- c(qa$d2H_known[qa$parameter=="plrm1"],
                qa$d2H_known[qa$parameter=="plrm2"])
   h.known.sd = c(qa$d2H_sd[qa$parameter=="plrm1"],
            qa$d2H_sd[qa$parameter=="plrm2"])
-  ## creates a vector with the known d18O values for plrm1 & plrm2
   
-  plrm1 <- qa$ID[qa$parameter=="plrm1"]
   ## creates a character string with the sampleID for plrm1
+  plrm1 <- qa$ID[qa$parameter=="plrm1"]
   
-  plrm2 <- qa$ID[qa$parameter=="plrm2"]
   ## creates a character string with the sampleID for plrm2
+  plrm2 <- qa$ID[qa$parameter=="plrm2"]
 
-  o.meas <- c(mean(tail(data$d18O_dc[data$ID==plrm1],n=4)),
-              mean(tail(data$d18O_dc[data$ID==plrm2], n=4)))
-  o.meas.sd <- c(sd(tail(data$d18O_dc[data$ID==plrm1],n=4)),
-              sd(tail(data$d18O_dc[data$ID==plrm2], n=4)))
   ## creates a vector with the mean measured d18O values for 
-  ## plrm1 and plrm 2 using the last 4 injections 
+  ## plrm1 and plrm 2 
+  o.meas <- c(data$d18O_avg[data$ID==plrm1],
+              data$d18O_avg[data$ID==plrm2])
+  o.meas.sem <- c(data$d18O_sem[data$ID==plrm1],
+              data$d18O_sem[data$ID==plrm2])
   
-  h.meas <- c(mean(tail(data$d2H_dc[data$ID==plrm1],n=4)),
-              mean(tail(data$d2H_dc[data$ID==plrm2], n=4)))
-  h.meas.sd <- c(sd(tail(data$d2H_dc[data$ID==plrm1],n=4)),
-              sd(tail(data$d2H_dc[data$ID==plrm2], n=4)))
   ## creates a vector with the mean measured d2H values for 
-  ## plrm1 and plrm 2 using the last 4 injections  
+  ## plrm1 and plrm 2  
+  h.meas <- c(data$d2H_avg[data$ID==plrm1],
+              data$d2H_avg[data$ID==plrm2])
+  h.meas.sem <- c(data$d2H_sem[data$ID==plrm1],
+              data$d2H_sem[data$ID==plrm2])
   
   o.known.sim = matrix(c(rnorm(1000, o.known[1], o.known.sd[1]),
                            rnorm(1000, o.known[2], o.known.sd[2])), ncol=2)
@@ -252,11 +252,11 @@ cal.reg <- function(data, qa.file){
   h.known.sim = matrix(c(rnorm(1000, h.known[1], h.known.sd[1]),
                            rnorm(1000, h.known[2], h.known.sd[2])), ncol=2)
 
-  o.meas.sim = matrix(c(rnorm(1000, o.meas[1], o.meas.sd[1]),
-                           rnorm(1000, o.meas[2], o.meas.sd[2])), ncol=2)
+  o.meas.sim = matrix(c(rnorm(1000, o.meas[1], o.meas.sem[1]),
+                           rnorm(1000, o.meas[2], o.meas.sem[2])), ncol=2)
   
-  h.meas.sim = matrix(c(rnorm(1000, h.meas[1], h.meas.sd[1]),
-                           rnorm(1000, h.meas[2], h.meas.sd[2])), ncol=2)
+  h.meas.sim = matrix(c(rnorm(1000, h.meas[1], h.meas.sem[1]),
+                           rnorm(1000, h.meas[2], h.meas.sem[2])), ncol=2)
   
   o.slope = apply(o.known.sim, 1, diff) / apply(o.meas.sim, 1, diff)
   o.int = o.known.sim[,1] - o.slope * o.meas.sim[,1]
@@ -285,8 +285,11 @@ data.cal <- function(data,element,cal){
   ## element is either "O" or "H"
   ## cal is the list created using the cal.reg function
   
-  uncalData<-if(element =="O"){data$d18O_dc}else if(
-    element=="H"){data$d2H_dc} 
+  uncalData = if(element =="O"){
+    data.frame("AVG" = data$d18O_avg, "SEM" = data$d18O_sem)
+  }else if(element=="H"){
+    data.frame("AVG" = data$d2H_avg, "SEM" = data$d2H_sem)
+  } 
   ##dictates column used
   
   cal.slope <-if(element=="O"){cal$o.slope
@@ -299,8 +302,8 @@ data.cal <- function(data,element,cal){
   
   calMean = calSD = double()
   
-  for(i in 1:length(uncalData)){
-    calData = uncalData[i] * cal.slope + cal.int
+  for(i in 1:nrow(uncalData)){
+    calData = rnorm(1000, uncalData[i,1], uncalData[i,2]) * cal.slope + cal.int
     calMean = c(calMean, mean(calData))
     calSD = c(calSD, sd(calData))
   }
