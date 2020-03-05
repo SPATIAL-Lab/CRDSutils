@@ -83,53 +83,72 @@ mc.terms <- function(data){
   #ensure sorting by seqN
   data = data[order(data$seqN),]
   
+  #numerical optimization for d18O
   o.mc.opt = optim(o.mc, mc.score, data = data, element = "O",
                    method = "L-BFGS-B", lower = 0)
+  #check for convergence
   if(o.mc.opt$convergence != 0){
     warning("O memory correction did not converge")
   }
+  
+  #same for d2H
   h.mc.opt = optim(h.mc, mc.score, data = data, element = "H",
                    method = "L-BFGS-B", lower = 0)
   if(h.mc.opt$convergence != 0){
     warning("H memory correction did not converge")
   }
 
+  #return only mc parameter values
   return(list(o.mc = o.mc.opt$par, h.mc = h.mc.opt$par))
 }
 
- 
+## Scores the memory correction for use in optimization 
 mc.score = function(mc, data, element){
   #run the correction using the current parameters
   data.mc = mc.corr(data, mc, element)
   
+  #add the port numers to the memory corrected values
   data.mc = data.frame(Port = data$Port, mc = data.mc)
   
+  #get sd values per port
   da = aggregate(data.mc[,"mc"], by = list(Port = data.mc$Port),
-                 mean, na.rm = TRUE)
+                 sd, na.rm = TRUE)
   
-  data.mc = merge(data.mc[data.mc$Port > 1,], da[da$Port > 1,])
+  #names for easy reference
+  names(da) = c("Port", "SD")
   
-  names(data.mc) = c("Port", "inj", "avg")
-  
-  data.mc$diff = data.mc$inj - data.mc$avg
-  
-  return(var(data.mc$diff, na.rm = TRUE))
+  #return score is the variance of the deviations
+  return(mean(da$SD, na.rm = TRUE))
 }
 
+## Conducts memory corretion for one element
 mc.corr = function(data, mc, element){
+  
+  #ensure sorting by seqN
+  data = data[order(data$seqN),]
+  
+  #extract uncorrected values for target element
   if(element == "O"){
     vals = data$d18O
   } else {
     vals = data$d2H
   }
   
+  #storage for corrected values
   vals.mc = rep(NA, length(vals))
+  
+  #cycle through each injection, skipping conditioners
   for(i in 11:length(vals)){
-    corr = sum(mc * vals[i:i-length(mc)])
+    #correction term is the sum of preceeding peaks weighted
+    #by mc parameters
+    corr = sum(mc * vals[i:(i-length(mc)+1)])
+    #weights scale to 1-true value weight
     wts = 1 - sum(mc)
-    vals.mc[i] = vals[i] - corr / wts
+    #make the correction
+    vals.mc[i] = (vals[i] - corr) / wts
   }
   
+  #return vector of corrected values
   return(vals.mc)
 }
 
@@ -388,7 +407,7 @@ outlier = function(data, oi.in){
     rm = readline("Outlier detected - <Enter> to remove, 'N' to keep/end: ")
     
     # if analyst chooses to remove
-    if(rm = ""){
+    if(rm == ""){
       #generate vector showing samples(s) to be removed
       oi = data$seqN != data.ok$seqN[oi.o] & 
         data$seqN != data.ok$seqN[oi.h]
