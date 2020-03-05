@@ -67,133 +67,74 @@ data.mod <- function(data.file, ids.file){
   return(iso.data)
 }
 
-#####################################################################
-##                        mc.terms function                        ##
-##           This function generates memory-correction             ##
-##           terms for d18O & d2H separately using the             ##
-##           specified subset of ports and the specified           ##
-##           subset of injections                                  ##
-#####################################################################
-
-mc.terms <- function(data,ports,injs){ 
+## Generates memory-correction terms for d18O & d2H 
+mc.terms <- function(data){ 
   ## data is the dataframe created using the data.mod function
   ## ports is a vector with the port numbers to be used to calculate
   ## the memory-correction terms
   ## injs is a vector with the injections to calculate 
   ## memory-correction terms for
   
-  terms <- function(data,col,inj){ 
-    ## sub-function that generates the mean mc term for a specified
-    ## injection for a given column using the specified ports
-    ## data is the dataframe created using the datamod function
-    ## col is the column to calculate memory-correction terms for
-    ## inj is the injection number to calculate memory-correction
-    ## term for
-    
-    a <- split(col,data$Port) 
-    ## splits the given column into vectors by port
-    
-	  b <- sapply(a,length) 
-    ## determines the length of each port vector 
-    ## (i.e. number of injections for each port)
-    
-	  d <- numeric() 
-    ## creates empty numeric vector
-    
-	  for(i in ports){
-	    d[i] <- (mean(a[[i]][(b[i]-1):b[i]])-a[[i]][inj])/
-        (a[[i]][inj]-a[[i-1]][b[i-1]])
-	  }
-    ## for loop populates empty vector with the memory correction
-    ## term for the given injection for each port. Format is 
-    ## (mean last 2 inj - nth inj)/(nth inj - last inj previous sample)
-    
-	  e <- mean(d[ports]) 
-    ## calculates the mean memory-correction term for the 
-    ## specified injection over the specified ports
-  }  
+  #initial guesses
+  n = seq(1:8)
+  o.mc = exp(-n) / 8
+  h.mc = exp(-n) / 3.5
+  
+  #ensure sorting by seqN
+  data = data[order(data$seqN),]
+  
+  o.mc.opt = optim(o.mc, mc.score, data = data, element = "O",
+                   method = "L-BFGS-B", lower = 0)
+  if(o.mc.opt$convergence != 0){
+    warning("O memory correction did not converge")
+  }
+  h.mc.opt = optim(h.mc, mc.score, data = data, element = "H",
+                   method = "L-BFGS-B", lower = 0)
+  if(h.mc.opt$convergence != 0){
+    warning("H memory correction did not converge")
+  }
 
-	o <- sapply(injs,terms,data=data,col=data$d18O) 
-  ## calculates the memory-correction terms for all 
-  ## specified injections for the d18O column
-  
-	h <- sapply(injs,terms,data=data,col=data$d2H)
-  ## calculates the memory-correction terms for all 
-  ## specified injections for the d2H column
-  
-	return(list(o=o,h=h))
+  return(list(o.mc = o.mc.opt$par, h.mc = h.mc.opt$par))
 }
 
-
-#####################################################################
-##                        data.mc function                         ##
-##           This function generates memory-corrected              ##
-##           data for the specified element using the              ##
-##           specified list of d18O and d2H memory-                ##
-##           correction terms                                      ##
-#####################################################################
-
-data.mc <- function(data,element,mc.terms){
-  ## data is the dataframe created using the data.mod function
-  ## element is either "O" or "H"
-  ## mc.terms is the list created using the mc.terms function
+ 
+mc.score = function(mc, data, element){
+  #run the correction using the current parameters
+  data.mc = mc.corr(data, mc, element)
   
-  col<-if(element =="O"){data$d18O}else if(
-    element=="H"){data$d2H} 
-  ##dictates column used
+  data.mc = data.frame(Port = data$Port, mc = data.mc)
   
-  m<-if(element=="O"){mc.terms$o}else if(element=="H"){mc.terms$h}
-  ##dictates memory corrections used
+  da = aggregate(data.mc[,"mc"], by = list(Port = data.mc$Port),
+                 mean, na.rm = TRUE)
   
-  a <- split(col,data$Port) 
-  ## splits the given column into vectors by port
+  data.mc = merge(data.mc[data.mc$Port > 1,], da[da$Port > 1,])
   
-  b <- sapply(a,length)
-  ## determines the length of each port vector 
-  ## (i.e. number of injections for each port)
+  names(data.mc) = c("Port", "inj", "avg")
   
-  d <- numeric()
-  ## creates empty numeric vector
+  data.mc$diff = data.mc$inj - data.mc$avg
   
-  for(i in 2:length(a)){  
-    d[i] <- a[[i-1]][b[i-1]]
-  }
-  ## for loop populates empty vector with the value from the last
-  ## injection for the previous port
-  
-  e <- data.frame(Port =unique(data$Port),prev = d)
-  ## creates dataframe with the unique list of port numbers
-  ## and the value from the last injection for the previous port
-  
-  data <- merge(data,e)
-  ## merges data with e on Port, adding the column with the 
-  ## value from the last injection for the previous port to data
-  ## to be used in the memory-correction calculation
-  
-  mc <- numeric()
-  ## creates empty numeric vector
-  
-  for(i in 1:length(col)){
-    mc[i] <- col[i] + (col[i] - data$prev[i])*m[data$inj[i]]
-  }
-  ## for loop populates empty vector with the memory-corrected
-  ## values for the specified column. Format is 
-  ## raw value + (raw value - value from last injection  
-  ## for previous port) * memory-correction term for injection 
-  ## associated with raw value
-  
-  return(mc)
+  return(var(data.mc$diff, na.rm = TRUE))
 }
 
-#####################################################################
-##                        cal.reg function                         ##
-##           This function calculates a regression line            ##
-##           for d18O and d2H between the known values             ##
-##           for plrm1 and plrm2 and returns the slope             ##
-##           and intercept to be used in calibrating the           ##
-##           measured values in the run                            ##
-#####################################################################
+mc.corr = function(data, mc, element){
+  if(element == "O"){
+    vals = data$d18O
+  } else {
+    vals = data$d2H
+  }
+  
+  vals.mc = rep(NA, length(vals))
+  for(i in 11:length(vals)){
+    corr = sum(mc * vals[i:i-length(mc)])
+    wts = 1 - sum(mc)
+    vals.mc[i] = vals[i] - corr / wts
+  }
+  
+  return(vals.mc)
+}
 
+## calculates a calbiration regression for d18O and d2H based
+## on plrm values
 cal.reg <- function(data, refFile){
   ## data is the dataframe created using the data.mod function and 
   ## updated with memory-corrected values using the data.mc function
@@ -272,13 +213,7 @@ cal.reg <- function(data, refFile){
               h.int = h.int))
 }
 
-#####################################################################
-##                        data.cal function                        ##
-##           This function generates calibrated data for           ##
-##           the specified element using the specified list        ##
-##           of d18O and d2H calibration slopes & intercepts       ##
-#####################################################################
-
+## Calibrates data for the specified element 
 data.cal <- function(data,element,cal){
   ## data is the dataframe created using the data.mod function and 
   ## updated with memory-corrected values using the data.mc function
@@ -315,15 +250,8 @@ data.cal <- function(data,element,cal){
   return(list(calMean = calMean, calSD = calSD))
 }
 
-#####################################################################
-##                        drift.reg function                       ##
-##           This function calculates a regression line            ##
-##           for d18O and d2H between the mean value for           ##
-##           each port with the slrm reference water and           ##
-##           the sequence of that port in the run                  ##
-#####################################################################
-
-drift.reg <- function(data, qa.file, genPlot){
+## Calculates drift regression lines for d18O and d2H
+drift.reg <- function(data, qa.file, genPlot = TRUE){
   ## data is the dataframe created using the data.mod function and 
   ## updated using the data.mc function and data.cal function
   ## qa.file is the filename of a csv as described in the cal.reg 
@@ -371,12 +299,7 @@ drift.reg <- function(data, qa.file, genPlot){
   return(list(o = o$coefficients[[2]], h = h$coefficients[[2]]))
 }
 
-#####################################################################
-##                        data.dc function                         ##
-##           This function generates drift-corrected data          ##
-##           for the mean d18O and d2H values for each port        ##
-#####################################################################
-
+## Drift-corrects data
 data.dc <- function(data, drift){
   ## data is the dataframe created using the data.mod function and 
   ## updated using the data.mc function and data.cal function
@@ -398,15 +321,92 @@ data.dc <- function(data, drift){
   return(data)
 }
 
-#####
-# Collapse multiple injection data to averages and standard errors
-#####
+## Detect outliers and return index for detections
+outlier = function(data, oi.in){
+  
+  #get aggregated data by port
+  da = collapse(data, oi.in)
+  
+  #merge aggregated values to full data
+  data = merge(data, da, by.x = c("Port", "ID", "ID2"), 
+               by.y = c("Port", "ID", "ID2"))
+  
+  #data minus current outliers
+  data.ok = data[oi.in,]
+  
+  #differences between individual injections and averages
+  data.ok$d18O_diff = data.ok$d18O_dc - data.ok$d18O_avg
+  data.ok$d2H_diff = data.ok$d2H_dc - data.ok$d2H_avg
+  
+  #standard deviations of the differences
+  O_diff.sd = sd(data.ok$d18O_diff, na.rm = TRUE)
+  H_diff.sd = sd(data.ok$d2H_diff, na.rm = TRUE)
+  
+  #Z-scores for the differences
+  data.ok$d18O_diff.Z = data.ok$d18O_diff / O_diff.sd
+  data.ok$d2H_diff.Z = data.ok$d2H_diff / H_diff.sd
+  
+  #space to store row nums of outliers
+  oi.o = oi.h = NULL
+  
+  #if any injection is a d18O outlier (beyond 3.5 SD)
+  if(any(data.ok$d18O_diff.Z > 3.5 * O_diff.sd)){
+    #store the row number for the most extreme outler
+    oi.o = match(max(abs(data.ok$d18O_diff.Z)), 
+                 abs(data.ok$d18O_diff.Z))
+  }
+  #same for d2H
+  if(any(data.ok$d2H_diff.Z > 3.5 * H_diff.sd)){
+    oi.h = match(max(abs(data.ok$d2H_diff.Z)), 
+                 abs(data.ok$d2H_diff.Z))
+  }
+  
+  # if any outliers are detected
+  if(!is.null(oi.o) & !is.null(oi.h)){
+    # plot the sequenc and the most extreme
+    par(mar = c(5,5,1,5))
+    plot(data.ok$seqN, data.ok$d18O_diff.Z, 
+         pch=21, bg = "light blue",
+         ylab = "", xlab = "Sequence number")
+    points(data.ok$seqN[oi.o], data.ok$d18O_diff.Z[oi.o], pch=21,
+           bg = "black", col = "light blue")
+    mtext("d18O", 2, 3, col = "light blue")
+    abline(3.5, 0, lty=2, col = "light blue")
+    abline(-3.5, 0, lty=2, col = "light blue")
+    par(new = TRUE)
+    plot(data.ok$seqN, data.ok$d2H_diff.Z, 
+         pch=21, bg = "red", axes = FALSE,
+         ylab = "", xlab = "")
+    points(data.ok$seqN[oi.h], data.ok$d2H_diff.Z[oi.h], pch=21,
+           bg = "black", col = "red")
+    axis(4)
+    mtext("d2H", 4, 3, col = "red")
+    abline(3.5, 0, lty=2, col = "red")
+    abline(-3.5, 0, lty=2, col = "red")
+    
+    # prompt for removal
+    rm = readline("Outlier detected - <Enter> to remove, 'N' to keep/end: ")
+    
+    # if analyst chooses to remove
+    if(rm = ""){
+      #generate vector showing samples(s) to be removed
+      oi = data$seqN != data.ok$seqN[oi.o] & 
+        data$seqN != data.ok$seqN[oi.h]
+      #combine with previously removed samples
+      oi = oi & oi.in
+      return(oi)
+    } else {
+      return(0)
+    }
+  }
+}
 
-collapse = function(data){
+## Collapse multiple injection data to averages and standard errors
+collapse = function(data, oi){
   #Average drift corrected isotope vals per port
-  avg <- aggregate(data[,c("d18O_dc","d2H_dc")],
-                   by=list(Port = data$Port,
-                           ID=data$ID, ID2 = data$ID2),
+  avg <- aggregate(data[oi,c("d18O_dc","d2H_dc")],
+                   by=list(Port = data$Port[oi],
+                           ID=data$ID[oi], ID2 = data$ID2[oi]),
                    mean, na.rm = TRUE)
   
   # Function for standard error of the mean
@@ -416,9 +416,9 @@ collapse = function(data){
   }
   
   #standard error of isotope vals per port
-  sterr <- aggregate(data[,c("d18O_dc","d2H_dc")],
-                   by=list(Port = data$Port,
-                           ID=data$ID, ID2 = data$ID2),
+  sterr <- aggregate(data[oi,c("d18O_dc","d2H_dc")],
+                   by=list(Port = data$Port[oi],
+                           ID=data$ID[oi], ID2 = data$ID2[oi]),
                    sem)
 
   names(avg)[4:5] = c("d18O_avg", "d2H_avg")
@@ -427,16 +427,8 @@ collapse = function(data){
   return(merge(avg, sterr, by=c("Port","ID","ID2")))
 }
 
-
-#####################################################################
-##                        qa.flag function                         ##
-##           This function evaluates the mean and sd for           ##
-##           slrm to determine if they are within acceptable       ##
-##           limits to determine the overall quality of the        ##
-##           run, as well as the sd for each port to assess        ##
-##           the data quality for each sample                      ##
-#####################################################################
-
+## Evaluates the mean and sd for slrm to determine if they are 
+## within acceptable limits, as well as the sd for each port 
 qa.flag <- function(data, qa.file){
   ## data is the dataframe created by the data.dc function
   ## qa.file is the filename of a csv as described in the cal.reg 
@@ -511,12 +503,7 @@ qa.flag <- function(data, qa.file){
   return(data) 
 }
 
-#####################################################################
-##                        qa.summary function                      ##
-##           This function summarizes the qa metrics for           ##
-##           the run                                               ##
-#####################################################################
-
+## Summarizes the qa metrics for the run
 qa.summary <- function(data.file,qa.file,mem,drift,cal,flagged){
   ## data.file is the filename of a csv as described in the data.mod
   ## function

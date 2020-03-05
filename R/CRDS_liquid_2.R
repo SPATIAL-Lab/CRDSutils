@@ -194,40 +194,41 @@ process_data <- function(files){
   # add sequence number per injection
   df$seqN = seq_along(df[,1])
   
-  ## mc.terms function generates memory-correction terms for the data
-  mem <- mc.terms(df,3:4,1:10)
+  ## generate memory-correction terms for the data
+  mem <- mc.terms(df)
   
   ## apply memory-correction terms to the d18O data
-  df$d18O_mc <- data.mc(df,"O",mem)
+  df$d18O_mc <- mc.corr(df, mem$o.mc, "O")
   
   ## apply memory-correction terms to the d2H data
-  df$d2H_mc <- data.mc(df,"H",mem)
+  df$d2H_mc <- mc.corr(df, mem$h.mc, "H")
   
   ## drift.reg function calculates regression of the  
   ## slrm data against sequence number
-  drift <- drift.reg(df, refFile, TRUE)
+  drift <- drift.reg(df, refFile)
   
   ## data.dc function applies the drift corrections to the data
   dc <- data.dc(df,drift)
+  
+  ## outlier detections
+  oi = outlier(dc)
 
   ## collapse values to average per port
   da = collapse(dc)
 
-  ########
   ## cal.reg function calculates a regression line using the known & 
   ## measured values for the d18O & d2H data separately
   cal <- cal.reg(da, refFile)
   
-  ## here the data.cal function calibrates the d18O data
+  ## calibrates the d18O and d2H data
   d18O_cal = data.cal(da, "O", cal)
-  
-  
   d2H_cal = data.cal(da, "H", cal)
 
+  ## combine calibrated data with da
   dcal = cbind(da, d18O_cm = d18O_cal$calMean, d18O_csd = d18O_cal$calSD,
                d2H_cm = d2H_cal$calMean, d2H_csd = d2H_cal$calSD)
-  ## here the data.cal function calibrates the d2H data
-  
+
+########    
   flagged <- qa.flag(da,qa.file)
   ## qa.flag function evaluates the data against the predetermined
   ## qa cutoffs and flags 
