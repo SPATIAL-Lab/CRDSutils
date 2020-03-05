@@ -194,27 +194,43 @@ process_data <- function(files){
   # add sequence number per injection
   df$seqN = seq_along(df[,1])
   
-  ## generate memory-correction terms for the data
-  mem <- mc.terms(df)
+  # stores outlier index info
+  oi = c(rep(FALSE, 10), rep(TRUE, nrow(dc)-10))
   
-  ## apply memory-correction terms to the d18O data
-  df$d18O_mc <- mc.corr(df, mem$o.mc, "O")
+  # continue the mdo cycle?
+  mdo = TRUE
   
-  ## apply memory-correction terms to the d2H data
-  df$d2H_mc <- mc.corr(df, mem$h.mc, "H")
+  # cycle to fit/apply memory and drift corrections,
+  # remove outliers, and repeat corrections 
+  while(mdo){
+    ## generate memory-correction terms for the data
+    mem <- mc.terms(df, oi)
+    
+    ## apply memory-correction terms to the d18O data
+    df$d18O_mc <- mc.corr(df, mem$o.mc, "O")
+    
+    ## apply memory-correction terms to the d2H data
+    df$d2H_mc <- mc.corr(df, mem$h.mc, "H")
+    
+    ## drift.reg function calculates regression of the  
+    ## slrm data against sequence number
+    drift <- drift.reg(df, refFile, oi)
+    
+    ## data.dc function applies the drift corrections to the data
+    dc <- data.dc(df,drift)
+    
+    ## outlier detections
+    oi.in = oi
+    oi = outlier(dc, oi.in)
+    if(all(oi.in == oi)){
+      mdo = FALSE
+    }
+  }
   
-  ## drift.reg function calculates regression of the  
-  ## slrm data against sequence number
-  drift <- drift.reg(df, refFile)
-  
-  ## data.dc function applies the drift corrections to the data
-  dc <- data.dc(df,drift)
-  
-  ## outlier detections
-  oi = outlier(dc)
+  message("MDO operations completed successfully")
 
   ## collapse values to average per port
-  da = collapse(dc)
+  da = collapse(dc, oi)
 
   ## cal.reg function calculates a regression line using the known & 
   ## measured values for the d18O & d2H data separately

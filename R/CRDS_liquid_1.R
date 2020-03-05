@@ -67,8 +67,10 @@ data.mod <- function(data.file, ids.file){
   return(iso.data)
 }
 
+mdo = function()
+
 ## Generates memory-correction terms for d18O & d2H 
-mc.terms <- function(data){ 
+mc.terms <- function(data, oi){ 
   ## data is the dataframe created using the data.mod function
   ## ports is a vector with the port numbers to be used to calculate
   ## the memory-correction terms
@@ -85,7 +87,7 @@ mc.terms <- function(data){
   
   #numerical optimization for d18O
   o.mc.opt = optim(o.mc, mc.score, data = data, element = "O",
-                   method = "L-BFGS-B", lower = 0)
+                   oi = oi, method = "L-BFGS-B", lower = 0)
   #check for convergence
   if(o.mc.opt$convergence != 0){
     warning("O memory correction did not converge")
@@ -93,7 +95,7 @@ mc.terms <- function(data){
   
   #same for d2H
   h.mc.opt = optim(h.mc, mc.score, data = data, element = "H",
-                   method = "L-BFGS-B", lower = 0)
+                   oi = oi, method = "L-BFGS-B", lower = 0)
   if(h.mc.opt$convergence != 0){
     warning("H memory correction did not converge")
   }
@@ -103,7 +105,7 @@ mc.terms <- function(data){
 }
 
 ## Scores the memory correction for use in optimization 
-mc.score = function(mc, data, element){
+mc.score = function(mc, data, element, oi){
   #run the correction using the current parameters
   data.mc = mc.corr(data, mc, element)
   
@@ -111,14 +113,15 @@ mc.score = function(mc, data, element){
   data.mc = data.frame(Port = data$Port, mc = data.mc)
   
   #get sd values per port
-  da = aggregate(data.mc[,"mc"], by = list(Port = data.mc$Port),
-                 sd, na.rm = TRUE)
+  da = aggregate(data.mc[oi,"mc"], 
+                 by = list(Port = data.mc$Port[oi]),
+                 var, na.rm = TRUE)
   
   #names for easy reference
-  names(da) = c("Port", "SD")
+  names(da) = c("Port", "Var")
   
   #return score is the variance of the deviations
-  return(mean(da$SD, na.rm = TRUE))
+  return(mean(da$Var, na.rm = TRUE))
 }
 
 ## Conducts memory corretion for one element
@@ -270,7 +273,7 @@ data.cal <- function(data,element,cal){
 }
 
 ## Calculates drift regression lines for d18O and d2H
-drift.reg <- function(data, qa.file, genPlot = TRUE){
+drift.reg <- function(data, qa.file, oi, genPlot = TRUE){
   ## data is the dataframe created using the data.mod function and 
   ## updated using the data.mc function and data.cal function
   ## qa.file is the filename of a csv as described in the cal.reg 
@@ -282,7 +285,10 @@ drift.reg <- function(data, qa.file, genPlot = TRUE){
   slrm <- qa$ID[qa$parameter=="slrm"]
   ## creates a character string with the sampleID for slrm
   
-  data.slrm <- data[data$ID==slrm & data$Port > 1 & data$inj <= 4,]
+  #Remove outliers
+  data = data[oi,]
+  
+  data.slrm <- data[data$ID==slrm & data$Port > 1,]
   ## subsets data to include only slrm water and excluding port 1
   
   data.slrm$seqN <- data.slrm$seqN - 20
@@ -324,9 +330,6 @@ data.dc <- function(data, drift){
   ## updated using the data.mc function and data.cal function
   ## drift is the list created using the drift.reg function
   
-  data <- data[data$Port > 1,]
-  ## subsets data to exclude ports 1
-  
   data$seqN <- data$seqN - 20
   ## subtracts 20 from sequence
   ## number so that the calibration midpoint is 0
@@ -348,7 +351,10 @@ outlier = function(data, oi.in){
   
   #merge aggregated values to full data
   data = merge(data, da, by.x = c("Port", "ID", "ID2"), 
-               by.y = c("Port", "ID", "ID2"))
+               by.y = c("Port", "ID", "ID2"), all = TRUE)
+  
+  #resort
+  data = data[order(data$seqN),]
   
   #data minus current outliers
   data.ok = data[oi.in,]
@@ -369,13 +375,13 @@ outlier = function(data, oi.in){
   oi.o = oi.h = NULL
   
   #if any injection is a d18O outlier (beyond 3.5 SD)
-  if(any(data.ok$d18O_diff.Z > 3.5 * O_diff.sd)){
+  if(any(abs(data.ok$d18O_diff.Z) > 3.5)){
     #store the row number for the most extreme outler
     oi.o = match(max(abs(data.ok$d18O_diff.Z)), 
                  abs(data.ok$d18O_diff.Z))
   }
   #same for d2H
-  if(any(data.ok$d2H_diff.Z > 3.5 * H_diff.sd)){
+  if(any(abs(data.ok$d2H_diff.Z) > 3.5)){
     oi.h = match(max(abs(data.ok$d2H_diff.Z)), 
                  abs(data.ok$d2H_diff.Z))
   }
@@ -387,8 +393,10 @@ outlier = function(data, oi.in){
     plot(data.ok$seqN, data.ok$d18O_diff.Z, 
          pch=21, bg = "light blue",
          ylab = "", xlab = "Sequence number")
-    points(data.ok$seqN[oi.o], data.ok$d18O_diff.Z[oi.o], pch=21,
+    if(!is.null(oi.o)){
+      points(data.ok$seqN[oi.o], data.ok$d18O_diff.Z[oi.o], pch=21,
            bg = "black", col = "light blue")
+    }
     mtext("d18O", 2, 3, col = "light blue")
     abline(3.5, 0, lty=2, col = "light blue")
     abline(-3.5, 0, lty=2, col = "light blue")
@@ -396,8 +404,10 @@ outlier = function(data, oi.in){
     plot(data.ok$seqN, data.ok$d2H_diff.Z, 
          pch=21, bg = "red", axes = FALSE,
          ylab = "", xlab = "")
-    points(data.ok$seqN[oi.h], data.ok$d2H_diff.Z[oi.h], pch=21,
+    if(!is.null(oi.h)){
+      points(data.ok$seqN[oi.h], data.ok$d2H_diff.Z[oi.h], pch=21,
            bg = "black", col = "red")
+    }
     axis(4)
     mtext("d2H", 4, 3, col = "red")
     abline(3.5, 0, lty=2, col = "red")
@@ -414,10 +424,12 @@ outlier = function(data, oi.in){
       #combine with previously removed samples
       oi = oi & oi.in
       return(oi)
-    } else {
-      return(0)
-    }
+    } 
   }
+  
+  #If no new outliers are found or to be removed return the
+  #input oi vector
+  return(oi.in)
 }
 
 ## Collapse multiple injection data to averages and standard errors
