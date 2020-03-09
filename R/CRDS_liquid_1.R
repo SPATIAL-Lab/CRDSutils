@@ -1,4 +1,3 @@
-#####################################################################
 ###                      Correct Functions                        ###
 ###         These functions are used to take data produced        ###
 ###         by a Picarro CRDS L2130i Isotopic H2O analyzer        ###
@@ -7,19 +6,59 @@
 ###         the injections for each port, and drift correct       ### 
 ###         the mean values. Finally, there are functions         ###
 ###         that quality-check the final values                   ###
-#####################################################################
 
-##  Note
-##  1st 3 samples are excluded from sequence used to create 
-##  drift correction
+refRead = function(refFile){
+  ## reads in qa file
+  qa.df <- read.csv(refFile, stringsAsFactors=FALSE)
+  
+  ## creates a character vector with the name of plrm1
+  plrm1 <- qa.df$ID[qa.df$parameter=="plrm1"]
+  
+  ## creates a character vector with the name of plrm2
+  plrm2 <- qa.df$ID[qa.df$parameter=="plrm2"]
+  
+  ## creates a character vector with the name of slrm
+  slrm <- qa.df$ID[qa.df$parameter=="slrm"]
+  
+  # combine reference names  
+  refs <- c(plrm1, plrm2, slrm)  
+  
+  criteria = list(
+  #slrm d18O max acceptable value
+    slrm.o.max = qa$max[qa$parameter=="slrm_O_range"],
+  #slrm d18O min acceptable value  
+    slrm.o.min = qa$min[qa$parameter=="slrm_O_range"],
+  #slrm d2H max acceptable value
+    slrm.h.max = qa$max[qa$parameter=="slrm_H_range"],
+  #slrm d2H min acceptable value
+    slrm.h.min = qa$min[qa$parameter=="slrm_H_range"],
+  #slrm d18O max acceptable sd
+    slrm.o.sd.max = qa$max[qa$parameter=="slrm_O_sd"],
+  #slrm d2H max acceptable sd
+    slrm.h.sd.max = qa$max[qa$parameter=="slrm_H_sd"],
+  #sample d18O max acceptable sd
+    sample.o.sd.max = qa$max[qa$parameter=="sample_O_sd"],
+  #sample d2H max acceptable sd
+    sample.h.sd.max = qa$max[qa$parameter=="sample_H_sd"])
 
-#####################################################################
-##                        data.mod function                        ##
-##           This function reads in the relevant files,            ## 
-##           modifies and merges them so they can be used          ## 
-##           in the subsequent functions                           ##
-#####################################################################
+  ## creates a vector with the known d18O values for plrm1 & plrm2
+  o.known = c(qa$d18O_known[qa$parameter=="plrm1"],
+               qa$d18O_known[qa$parameter=="plrm2"])
+  o.known.sd = c(qa$d18O_sd[qa$parameter=="plrm1"],
+                 qa$d18O_sd[qa$parameter=="plrm2"])
+  
+  ## creates a vector with the known d18O values for plrm1 & plrm2
+  h.known = c(qa$d2H_known[qa$parameter=="plrm1"],
+               qa$d2H_known[qa$parameter=="plrm2"])
+  h.known.sd = c(qa$d2H_sd[qa$parameter=="plrm1"],
+                 qa$d2H_sd[qa$parameter=="plrm2"])
+  
+  return(list(refs = refs, o.known = o.known, criteria = criteria,
+              o.known.sd = o.known.sd, h.known = h.known,
+              h.known.sd = h.known.sd))
+}
 
+## Reads in the relevant files, modifies and merges them
 data.mod <- function(data.file, ids.file){
   ##  data.file is the filename of a csv with the isotope
   ##  data produced by a Picarro CRDS with the following columns: 
@@ -157,43 +196,9 @@ mc.corr = function(data, mc, element){
 
 ## calculates a calbiration regression for d18O and d2H based
 ## on plrm values
-cal.reg <- function(data, refFile){
+cal.reg <- function(data, refs){
   ## data is the dataframe created using the data.mod function and 
   ## updated with memory-corrected values using the data.mc function
-  ## qa.file is the filename of a csv with 6 columns - 
-  ## parameter, id, min, max, d18O_known, d2H_known - 
-  ## and 9 rows (slrm_O_range, slrm_H_range, slrm_O_sd, slrm_H_sd, 
-  ## sample_H_sd, sample_O_sd, plrm-1, plrm-2, slrm). An example
-  ## can be seen if you run the following lines
-  ## > data.frame(parameter=c("slrm_O_range", 
-  ## > "slrm_H_range", "slrm_O_sd", "slrm_H_sd", 
-  ## > "sample_H_sd", "sample_O_sd", "plrm1", 
-  ## > "plrm2","slrm"), id = c(rep(NA,6),"PZ","UT","PT"),
-  ## > min=c(-7.26, -47.05, rep(NA,7)),
-  ## > max=c(-7,-44.95,0.12,0.5,0.75,0.2,NA,NA,NA),
-  ## > d18O_known=c(rep(NA,6),1.83,-16.44,-7.13),
-  ## > d2H_known=c(rep(NA,6),17.2,-122.84,-46))
-  
-  ## reads in qa.file 
-  qa <- read.csv(refFile,stringsAsFactors=FALSE) 
-  
-  ## creates a vector with the known d18O values for plrm1 & plrm2
-  o.known <- c(qa$d18O_known[qa$parameter=="plrm1"],
-                qa$d18O_known[qa$parameter=="plrm2"])
-  o.known.sd = c(qa$d18O_sd[qa$parameter=="plrm1"],
-           qa$d18O_sd[qa$parameter=="plrm2"])
-  
-  ## creates a vector with the known d18O values for plrm1 & plrm2
-  h.known <- c(qa$d2H_known[qa$parameter=="plrm1"],
-               qa$d2H_known[qa$parameter=="plrm2"])
-  h.known.sd = c(qa$d2H_sd[qa$parameter=="plrm1"],
-           qa$d2H_sd[qa$parameter=="plrm2"])
-  
-  ## creates a character string with the sampleID for plrm1
-  plrm1 <- qa$ID[qa$parameter=="plrm1"]
-  
-  ## creates a character string with the sampleID for plrm2
-  plrm2 <- qa$ID[qa$parameter=="plrm2"]
 
   ## creates a vector with the mean measured d18O values for 
   ## plrm1 and plrm 2 
@@ -209,17 +214,24 @@ cal.reg <- function(data, refFile){
   h.meas.sem <- c(data$d2H_sem[data$ID==plrm1],
               data$d2H_sem[data$ID==plrm2])
   
-  o.known.sim = matrix(c(rnorm(1000, o.known[1], o.known.sd[1]),
-                           rnorm(1000, o.known[2], o.known.sd[2])), ncol=2)
-  
-  h.known.sim = matrix(c(rnorm(1000, h.known[1], h.known.sd[1]),
-                           rnorm(1000, h.known[2], h.known.sd[2])), ncol=2)
+  #Simulate known values for PLRMs
+  o.known.sim = matrix(c(rnorm(1000, refs$o.known[1], 
+                               refs$o.known.sd[1]),
+                           rnorm(1000, refs$o.known[2], 
+                                 refs$o.known.sd[2])), ncol=2)
+  h.known.sim = matrix(c(rnorm(1000, refs$h.known[1], 
+                               refs$h.known.sd[1]),
+                           rnorm(1000, refs$h.known[2], 
+                                 refs$h.known.sd[2])), ncol=2)
 
+  #Simulate measured values for PLRMs
   o.meas.sim = matrix(c(rnorm(1000, o.meas[1], o.meas.sem[1]),
-                           rnorm(1000, o.meas[2], o.meas.sem[2])), ncol=2)
+                           rnorm(1000, o.meas[2], o.meas.sem[2])),
+                      ncol=2)
   
   h.meas.sim = matrix(c(rnorm(1000, h.meas[1], h.meas.sem[1]),
-                           rnorm(1000, h.meas[2], h.meas.sem[2])), ncol=2)
+                           rnorm(1000, h.meas[2], h.meas.sem[2])),
+                      ncol=2)
   
   o.slope = apply(o.known.sim, 1, diff) / apply(o.meas.sim, 1, diff)
   o.int = o.known.sim[,1] - o.slope * o.meas.sim[,1]
@@ -273,22 +285,16 @@ data.cal <- function(data,element,cal){
 }
 
 ## Calculates drift regression lines for d18O and d2H
-drift.reg <- function(data, qa.file, oi, genPlot = TRUE){
+drift.reg <- function(data, refs, oi, genPlot = TRUE){
   ## data is the dataframe created using the data.mod function and 
   ## updated using the data.mc function and data.cal function
   ## qa.file is the filename of a csv as described in the cal.reg 
   ## function
-  
-  qa <- read.csv(qa.file,stringsAsFactors=FALSE) 
-  ## reads in qa.file 
-  
-  slrm <- qa$ID[qa$parameter=="slrm"]
-  ## creates a character string with the sampleID for slrm
-  
+
   #Remove outliers
   data = data[oi,]
   
-  data.slrm <- data[data$ID==slrm & data$Port > 1,]
+  data.slrm <- data[data$ID == refs$refs[3] & data$Port > 1,]
   ## subsets data to include only slrm water and excluding port 1
   
   data.slrm$seqN <- data.slrm$seqN - 20
@@ -311,8 +317,8 @@ drift.reg <- function(data, qa.file, oi, genPlot = TRUE){
     lines(data.slrm$seqN, conf[,1], col = "light blue")
     matlines(data.slrm$seqN, conf[,2:3], lty = 2, col = "light blue")
     par(new = TRUE)
-    plot(data.slrm$seqN, data.slrm$d2H_mc, pch=21, bg = "red", axes = FALSE,
-         ylab = "", xlab = "")
+    plot(data.slrm$seqN, data.slrm$d2H_mc, pch=21, bg = "red", 
+         axes = FALSE, ylab = "", xlab = "")
     axis(4)
     mtext("d2H", 4, 3, col = "red")
     conf = predict(h, newdata=data.frame(x=data.slrm$seqN), 
@@ -460,82 +466,68 @@ collapse = function(data, oi){
 
 ## Evaluates the mean and sd for slrm to determine if they are 
 ## within acceptable limits, as well as the sd for each port 
-qa.flag <- function(data, qa.file){
+qa.flag <- function(data, refs){
   ## data is the dataframe created by the data.dc function
   ## qa.file is the filename of a csv as described in the cal.reg 
   ## function 
   
-  qa <- read.csv(qa.file,stringsAsFactors=FALSE) 
-  ## reads in qa.file 
-  
-  slrm <- qa$ID[qa$parameter=="slrm"]
-  ## creates a character string with the sampleID for slrm
-  
-  slrm.o <- mean(data$d18O_avg[data$ID==slrm],na.rm=T)
+  slrm.o <- mean(data$d18O_cm[data$ID==refs$refs[3]], na.rm=TRUE)
   ## calculates mean for slrm d18O
   
-  slrm.h <- mean(data$d2H_avg[data$ID==slrm],na.rm=T)
+  slrm.h <- mean(data$d2H_cm[data$ID==refs$refs[3]], na.rm=TRUE)
   ## calculates mean for slrm d2H
   
-  slrm.o.sd <- sd(data$d18O_avg[data$ID==slrm],na.rm=T)
+  slrm.o.sd <- sd(data$d18O_cm[data$ID==refs$refs[3]], na.rm=TRUE)
   ## calculates sd for slrm d18O
   
-  slrm.h.sd <- sd(data$d2H_avg[data$ID==slrm],na.rm=T)
+  slrm.h.sd <- sd(data$d2H_cm[data$ID==refs$refs[3]], na.rm=TRUE)
   ## calculates sd for slrm d2H
   
-  slrm.o.max <- qa$max[qa$parameter=="slrm_O_range"]
-  ## stores the value for slrm d18O max acceptable value
   
-  slrm.o.min <- qa$min[qa$parameter=="slrm_O_range"]
-  ## stores the value for slrm d18O min acceptable value
-  
-  slrm.h.max <- qa$max[qa$parameter=="slrm_H_range"]
-  ## stores the value for slrm d2H max acceptable value
-  
-  slrm.h.min <- qa$min[qa$parameter=="slrm_H_range"]
-  ## stores the value for slrm d2H min acceptable value
-  
-  slrm.o.sd.max <- qa$max[qa$parameter=="slrm_O_sd"]
-  ## stores the value for slrm d18O max acceptable sd
-  
-  slrm.h.sd.max <- qa$max[qa$parameter=="slrm_H_sd"]
-  ## stores the value for slrm d2H max acceptable sd
-  
-  sample.o.sd.max <- qa$max[qa$parameter=="sample_O_sd"]
-  ## stores the value for sample d18O max acceptable sd
-  
-  sample.h.sd.max <- qa$max[qa$parameter=="sample_H_sd"]
-  ## stores the value for sample d2H max acceptable sd
-  
-  data$ignore_run <- ifelse(slrm.o > slrm.o.max | slrm.o < slrm.o.min | 
-                              slrm.h > slrm.h.max | slrm.h < slrm.h.min | 
+  data$ignore_run <- ifelse(slrm.o > slrm.o.max | 
+                              slrm.o < slrm.o.min | 
+                              slrm.h > slrm.h.max | 
+                              slrm.h < slrm.h.min | 
                               slrm.o.sd > slrm.o.sd.max | 
                               slrm.h.sd > slrm.h.sd.max, 1, 0)
   ## returns a 1 if any of the slrm quality parameters are violated
   ## and a 0 if not
   
-  data$ignore_sample <- ifelse(data$ignore_run == 1 | 
-                                  complete.cases(data) == FALSE |
-                                  data$d18O_sd > sample.o.sd.max |
-                                  data$d2H_sd > sample.h.sd.max, 1, 0)
+  data$ignore_sample <- ifelse(
+    (data$ignore_run == 1 | 
+      complete.cases(data) == FALSE |
+      data$d18O_csd > refs$criteria$sample.o.sd.max |
+      data$d2H_csd > refs$criteria$sample.h.sd.max), 1, 0)
   ## returns a 1 if any of the slrm quality parameters were violated
   ## as determined by the previous ifelse statement and or if the
   ## sample sd for d18O or d2H exceeds the maximum acceptable values
   
-  if(slrm.o > slrm.o.max | slrm.o < slrm.o.min){warning("slrm d18O average out of range")}
-  if(slrm.h > slrm.h.max | slrm.h < slrm.h.min){warning("slrm d2H average out of range")}
-  if(slrm.o.sd > slrm.o.sd.max){warning("slrm d18O sd out of range")}
-  if(slrm.h.sd > slrm.h.sd.max){warning("slrm d2H sd out of range")}
+  if(slrm.o > refs$criteria$slrm.o.max | 
+     slrm.o < refs$criteria$slrm.o.min){
+    warning("slrm d18O average out of range")
+  }
+  if(slrm.h > refs$criteria$slrm.h.max | 
+     slrm.h < refs$criteria$slrm.h.min){
+    warning("slrm d2H average out of range")
+  }
+  if(slrm.o.sd > refs$criteria$slrm.o.sd.max){
+    warning("slrm d18O sd out of range")
+  }
+  if(slrm.h.sd > refs$criteria$slrm.h.sd.max){
+    warning("slrm d2H sd out of range")
+  }
   ##generates warnings if parameters are violated
   
-  if(any(data$ignore_sample == 1)){warning("sample values ignored")}
+  if(any(data$ignore_sample == 1)){
+    warning("sample values ignored")
+  }
   ##generates warnings if sample values are to be ignored)
   
   return(data) 
 }
 
 ## Summarizes the qa metrics for the run
-qa.summary <- function(data.file,qa.file,mem,drift,cal,flagged){
+qa.summary <- function(data.file, refs, mem, drift, cal, flagged){
   ## data.file is the filename of a csv as described in the data.mod
   ## function
   ## qa.file is the filename of a csv as described in the cal.reg 
@@ -545,62 +537,63 @@ qa.summary <- function(data.file,qa.file,mem,drift,cal,flagged){
   ## cal is a list created by the cal.reg function
   ## flagged is a dataframe created by the qa.flag function
   
-  qa <- read.csv(qa.file,stringsAsFactors=FALSE) 
-  ## reads in qa.file 
-  
-  slrm <- qa$ID[qa$parameter=="slrm"]
-  ## creates a character string with the sampleID for slrm
-  
-  qa <- read.csv(qa.file,stringsAsFactors=FALSE) 
-  ## reads in qa.file 
-  
-  slrm <- qa$ID[qa$parameter=="slrm"]
-  ## creates a character string with the sampleID for slrm
-  
-  slrm.o <- mean(flagged$d18O_dc[flagged$ID==slrm],na.rm=T)
-  ## calculates mean for slrm d18O
-  
-  slrm.h <- mean(flagged$d2H_dc[flagged$ID==slrm],na.rm=T)
-  ## calculates mean for slrm d2H
-  
-  slrm.o.sd <- sd(flagged$d18O_dc[flagged$ID==slrm],na.rm=T)
-  ## calculates sd for slrm d18O
-  
-  slrm.h.sd <- sd(flagged$d2H_dc[flagged$ID==slrm],na.rm=T)
-  ## calculates sd for slrm d2H
-  
+  #Mean for slrm d18O
+  slrm.o <- mean(flagged$d18O_cm[flagged$ID == refs$refs[3]], 
+                 na.rm=TRUE)
+
+  #Mean for slrm d2H
+  slrm.h <- mean(flagged$d2H_cm[flagged$ID == refs$refs[3]],
+                 na.rm=TRUE)
+
+  #SD for slrm d18O
+  slrm.o.sd <- sd(flagged$d18O_cm[flagged$ID == refs$refs[3]],
+                  na.rm=TRUE)
+
+  #SD for slrm d2H
+  slrm.h.sd <- sd(flagged$d2H_cm[flagged$ID == refs$refs[3]],
+                  na.rm=TRUE)
+
+  ## uses regular expressions to pull the instrument name out 
+  ## of the file name
   Instrument <- ifelse(grepl("HIDS[0-9]*",data.file),
                     regmatches(data.file,regexpr("HIDS[0-9]*", 
                                                  data.file)),NA)
-  ## uses regular expressions to pull the instrument name out 
-  ## of the file name
   
+  ## uses regular expressions to pull the date out of the file name
   Run_date <- ifelse(grepl("HIDS[0-9]*",data.file),
                      regmatches(data.file,regexpr("[0-9]{8}", 
                                                   data.file)),NA)
-  ## uses regular expressions to pull the date out of the file name
   
-  Run_date <- format(as.Date(Run_date,format="%Y%m%d"),"%m/%d/%y")
   ## changes the format of the date to mm/dd/yy
+  Run_date <- format(as.Date(Run_date,format="%Y%m%d"),"%m/%d/%y")
   
-  summary <- data.frame(parameter = c("Instrument", "Run_date", "Memory1_O", 
-                                      "Memory2_O", "Memory3_O", "Memory4_O", 
-                                      "Drift_O", "Slope_O", "Intercept_O", 
-                                      "Memory1_H", "Memory2_H", "Memory3_H", 
-                                      "Memory4_H", "Drift_H", "Slope_H", 
-                                      "Intercept_H",  "SLRM_O_mean", 
-                                      "SLRM_H_mean", "SLRM_O_sd", "SLRM_H_sd",
+  #Parameters summary dataframe
+  summary <- data.frame(parameter = c("Instrument", "Run_date", 
+                                      "Memory1_O", "Memory2_O",
+                                      "Memory3_O", "Memory4_O", 
+                                      "Drift_O", "Slope_O", 
+                                      "Intercept_O", "Memory1_H", 
+                                      "Memory2_H", "Memory3_H", 
+                                      "Memory4_H", "Drift_H",
+                                      "Slope_H", "Intercept_H",  
+                                      "SLRM_O_mean", "SLRM_H_mean", 
+                                      "SLRM_O_sd", "SLRM_H_sd",
                                       "SLRM_count", "Ignore"),
-                           value = c(Instrument, Run_date, mem$o[1], mem$o[2], 
-                                     mem$o[3],  mem$o[4], drift$o, cal$o.slope, 
-                                     cal$o.int, mem$h[1], mem$h[2], mem$h[3],
-                                     mem$h[4], drift$h, cal$h.slope, cal$h.int,
-                                     slrm.o, slrm.h, slrm.o.sd, slrm.h.sd,
-                                     nrow(flagged[flagged$ID==slrm,]),
-                                     ifelse(flagged$ignore_run[1]==1,1,0)))
+                           value = c(Instrument, Run_date, 
+                                     mem$o.mc[1], mem$o.mc[2], 
+                                     mem$o.mc[3], mem$o.mc[4],
+                                     drift$o, mean(cal$o.slope), 
+                                     mean(cal$o.int), mem$h.mc[1], 
+                                     mem$h.mc[2], mem$h.mc[3],
+                                     mem$h.mc[4], drift$h, 
+                                     mean(cal$h.slope), 
+                                     mean(cal$h.int), slrm.o, 
+                                     slrm.h, slrm.o.sd, slrm.h.sd,
+                                     nrow(flagged[flagged$ID ==
+                                                    refs$refs[3],]),
+                                     flagged$ignore_run[1]))
   summary$value <- as.character(summary$value)
-#  summary$value[3:20] <- round(as.numeric(summary$value[3:20]),digits=3)
-  ## creates a table with the summary data
+
   return(summary)
 }
 
