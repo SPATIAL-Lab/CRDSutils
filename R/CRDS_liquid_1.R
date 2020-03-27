@@ -9,16 +9,16 @@
 
 refRead = function(refFile){
   ## reads in qa file
-  qa.df <- read.csv(refFile, stringsAsFactors=FALSE)
+  qa <- read.csv(refFile, stringsAsFactors=FALSE)
   
   ## creates a character vector with the name of plrm1
-  plrm1 <- qa.df$ID[qa.df$parameter=="plrm1"]
+  plrm1 <- qa$ID[qa$parameter=="plrm1"]
   
   ## creates a character vector with the name of plrm2
-  plrm2 <- qa.df$ID[qa.df$parameter=="plrm2"]
+  plrm2 <- qa$ID[qa$parameter=="plrm2"]
   
   ## creates a character vector with the name of slrm
-  slrm <- qa.df$ID[qa.df$parameter=="slrm"]
+  slrm <- qa$ID[qa$parameter=="slrm"]
   
   # combine reference names  
   refs <- c(plrm1, plrm2, slrm)  
@@ -105,8 +105,6 @@ data.mod <- function(data.file, ids.file){
   
   return(iso.data)
 }
-
-mdo = function()
 
 ## Generates memory-correction terms for d18O & d2H 
 mc.terms <- function(data, oi){ 
@@ -223,17 +221,17 @@ cal.reg <- function(data, refs){
 
   ## creates a vector with the mean measured d18O values for 
   ## plrm1 and plrm 2 
-  o.meas <- c(data$d18O_avg[data$ID==plrm1],
-              data$d18O_avg[data$ID==plrm2])
-  o.meas.sem <- c(data$d18O_sem[data$ID==plrm1],
-              data$d18O_sem[data$ID==plrm2])
+  o.meas <- c(data$d18O_avg[data$ID == refs$refs[1]],
+              data$d18O_avg[data$ID == refs$refs[2]])
+  o.meas.sem <- c(data$d18O_sem[data$ID == refs$refs[1]],
+              data$d18O_sem[data$ID == refs$refs[2]])
   
   ## creates a vector with the mean measured d2H values for 
   ## plrm1 and plrm 2  
-  h.meas <- c(data$d2H_avg[data$ID==plrm1],
-              data$d2H_avg[data$ID==plrm2])
-  h.meas.sem <- c(data$d2H_sem[data$ID==plrm1],
-              data$d2H_sem[data$ID==plrm2])
+  h.meas <- c(data$d2H_avg[data$ID == refs$refs[1]],
+              data$d2H_avg[data$ID == refs$refs[2]])
+  h.meas.sem <- c(data$d2H_sem[data$ID == refs$refs[1]],
+              data$d2H_sem[data$ID == refs$refs[2]])
   
   #Simulate known values for PLRMs
   o.known.sim = matrix(c(rnorm(1000, refs$o.known[1], 
@@ -322,33 +320,36 @@ drift.reg <- function(data, refs, oi, genPlot = TRUE){
   ## subtracts 20 from sequence
   ## number so that the calibration midpoint is 0
   
-  o <- lm(data.slrm$d18O_mc ~ data.slrm$seqN) 
-  ##regression of mean d18O value against sequence
+  #get mean values per port
+  data.slrm = aggregate(data.slrm[, c("d18O_mc", "d2H_mc", "seqN")], 
+                 by = list(Port = data.slrm$Port),
+                 mean, na.rm = TRUE)
   
-  h <- lm(data.slrm$d2H_mc ~ data.slrm$seqN) 
-  ##regression of mean d2H value against sequence
+  ## spline fits to slrm port averages
+  o = smooth.spline(data.slrm$seqN, data.slrm$d18O_mc, 
+                    df = ceiling(nrow(data.slrm)/2))
+  h = smooth.spline(data.slrm$seqN, data.slrm$d2H_mc,
+                    df = ceiling(nrow(data.slrm)/2))
   
   if(genPlot){
     par(mar = c(5,5,1,5))
     plot(data.slrm$seqN, data.slrm$d18O_mc, pch=21, bg = "light blue",
          ylab = "", xlab = "Sequence number")
     mtext("d18O", 2, 3, col = "light blue")
-    conf = predict(o, newdata=data.frame(x=data.slrm$seqN), 
-                   interval="confidence", level = 0.95)
-    lines(data.slrm$seqN, conf[,1], col = "light blue")
-    matlines(data.slrm$seqN, conf[,2:3], lty = 2, col = "light blue")
+    op = predict(o, floor(min(data.slrm$seqN)):
+                          ceiling(max(data.slrm$seqN)))
+    lines(op, col = "light blue")
     par(new = TRUE)
     plot(data.slrm$seqN, data.slrm$d2H_mc, pch=21, bg = "red", 
          axes = FALSE, ylab = "", xlab = "")
     axis(4)
     mtext("d2H", 4, 3, col = "red")
-    conf = predict(h, newdata=data.frame(x=data.slrm$seqN), 
-                   interval="confidence", level = 0.95)
-    lines(data.slrm$seqN, conf[,1], col = "red")
-    matlines(data.slrm$seqN, conf[,2:3], lty = 2, col = "red")
+    hp = predict(h, floor(min(data.slrm$seqN)):
+                   ceiling(max(data.slrm$seqN)))
+    lines(hp, col = "red")
   }
   
-  return(list(o = o$coefficients[[2]], h = h$coefficients[[2]]))
+  return(list(o = o, h = h))
 }
 
 ## Drift-corrects data
@@ -361,10 +362,12 @@ data.dc <- function(data, drift){
   ## subtracts 20 from sequence
   ## number so that the calibration midpoint is 0
   
-  data$d18O_dc <- data$d18O_mc - data$seqN * drift$o
+  data$d18O_dc <- data$d18O_mc - (predict(drift$o, data$seqN)$y -
+                                    predict(drift$o, 0)$y)
   ## calculates drift-corrected values for d18O
   
-  data$d2H_dc <- data$d2H_mc - data$seqN * drift$h
+  data$d2H_dc <- data$d2H_mc - (predict(drift$h, data$seqN)$y -
+                                  predict(drift$h, 0)$y)
   ## calculates drift-corrected values for d2H
   
   return(data)
@@ -621,10 +624,12 @@ qa.summary <- function(data.file, refs, mem, drift, cal, flagged){
                            value = c(Instrument, Run_date, 
                                      mem$o.mc[1], mem$o.mc[2], 
                                      mem$o.mc[3], mem$o.mc[4],
-                                     drift$o, mean(cal$o.slope), 
+                                     diff(range(drift$o$fit$coef)),
+                                     mean(cal$o.slope), 
                                      mean(cal$o.int), mem$h.mc[1], 
                                      mem$h.mc[2], mem$h.mc[3],
-                                     mem$h.mc[4], drift$h, 
+                                     mem$h.mc[4], 
+                                     diff(range(drift$h$fit$coef)), 
                                      mean(cal$h.slope), 
                                      mean(cal$h.int), slrm.o, 
                                      slrm.h, slrm.o.sd, slrm.h.sd,
