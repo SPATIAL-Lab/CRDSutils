@@ -119,7 +119,7 @@ mc.terms <- function(data, oi){
   #initial guesses
   n = seq(1:8)
   o.mc = exp(-n) / 8
-  h.mc = exp(-n) / 3.5
+  h.mc = exp(-n) / 4
   
   #ensure sorting by seqN
   data = data[order(data$seqN),]
@@ -146,12 +146,12 @@ mc.terms <- function(data, oi){
 ## Scores the memory correction for use in optimization 
 mc.score = function(mc, data, element, oi){
   #run the correction using the current parameters
-  data.mc = mc.corr(data, mc, element)
+  data.mc = mc.corr(data, mc, element, oi)
   
   #add the port numers to the memory corrected values
   data.mc = data.frame(Port = data$Port, mc = data.mc)
   
-  #get sd values per port
+  #get variance values per port
   da = aggregate(data.mc[oi,"mc"], 
                  by = list(Port = data.mc$Port[oi]),
                  var, na.rm = TRUE)
@@ -164,7 +164,7 @@ mc.score = function(mc, data, element, oi){
 }
 
 ## Conducts memory corretion for one element
-mc.corr = function(data, mc, element){
+mc.corr = function(data, mc, element, oi){
   
   #ensure sorting by seqN
   data = data[order(data$seqN),]
@@ -181,11 +181,32 @@ mc.corr = function(data, mc, element){
   
   #cycle through each injection, skipping conditioners
   for(i in 11:length(vals)){
+    #subset of vals allows reference wrt to the target injection
+    vals.sub = vals[1:i]
+    
+    #remove any missing injections; memory persists through these
+    vals.sub = vals.sub[!is.na(vals.sub)]
+    
+    #length of vals.sub for convenience
+    vsl = length(vals.sub)
+    
+    #check that there are enough injections, otherwise trim mc
+    if(vsl == 0){
+      vals.mc[i] = vals[i]
+      break()
+    } else if(vsl - 1 < length(mc)){
+      mc.sub = mc[1:(vsl-1)]
+    } else{
+      mc.sub = mc
+    }
+    
     #correction term is the sum of preceeding peaks weighted
     #by mc parameters
-    corr = sum(mc * vals[i:(i-length(mc)+1)])
+    corr = sum(mc.sub * vals.sub[(vsl-1):(vsl-length(mc.sub))])
+    
     #weights scale to 1-true value weight
-    wts = 1 - sum(mc)
+    wts = 1 - sum(mc.sub)
+    
     #make the correction
     vals.mc[i] = (vals[i] - corr) / wts
   }
@@ -294,12 +315,12 @@ drift.reg <- function(data, refs, oi, genPlot = TRUE){
   #Remove outliers
   data = data[oi,]
   
-  data.slrm <- data[data$ID == refs$refs[3] & data$Port > 1,]
+  data.slrm = data[data$ID == refs$refs[3] & data$Port > 1,]
   ## subsets data to include only slrm water and excluding port 1
   
-  data.slrm$seqN <- data.slrm$seqN - 20
-  ## creates a column for sequence that subtracts 4 from each port
-  ## number so that the first value is 0
+  data.slrm$seqN = data.slrm$seqN - 20
+  ## subtracts 20 from sequence
+  ## number so that the calibration midpoint is 0
   
   o <- lm(data.slrm$d18O_mc ~ data.slrm$seqN) 
   ##regression of mean d18O value against sequence
@@ -352,6 +373,9 @@ data.dc <- function(data, drift){
 ## Detect outliers and return index for detections
 outlier = function(data, oi.in){
   
+  #copy oi.in
+  oi = oi.in
+  
   #get aggregated data by port
   da = collapse(data, oi.in)
   
@@ -359,7 +383,7 @@ outlier = function(data, oi.in){
   data = merge(data, da, by.x = c("Port", "ID", "ID2"), 
                by.y = c("Port", "ID", "ID2"), all = TRUE)
   
-  #resort
+  #re-sort
   data = data[order(data$seqN),]
   
   #data minus current outliers
@@ -394,7 +418,7 @@ outlier = function(data, oi.in){
   
   # if any outliers are detected
   if(!is.null(oi.o) & !is.null(oi.h)){
-    # plot the sequenc and the most extreme
+    # plot the sequence and the most extreme
     par(mar = c(5,5,1,5))
     plot(data.ok$seqN, data.ok$d18O_diff.Z, 
          pch=21, bg = "light blue",
@@ -419,23 +443,37 @@ outlier = function(data, oi.in){
     abline(3.5, 0, lty=2, col = "red")
     abline(-3.5, 0, lty=2, col = "red")
     
-    # prompt for removal
-    rm = readline("Outlier detected - <Enter> to remove, 'N' to keep/end: ")
+    # warn about removal
+    if(!is.null(oi.o)){
+      rm = paste("Oxygen outlier detected - Port", 
+                 data.ok$Port[oi.o], "Inj",
+                 data.ok$inj[oi.o])   
+      warning(rm)
+    }
+    if(!is.null(oi.h)){
+      rm = paste("Hydrogen outlier detected - Port", 
+                 data.ok$Port[oi.h], "Inj",
+                 data.ok$inj[oi.h])   
+      warning(rm)
+    }
     
-    # if analyst chooses to remove
-    if(rm == ""){
-      #generate vector showing samples(s) to be removed
-      oi = data$seqN != data.ok$seqN[oi.o] & 
-        data$seqN != data.ok$seqN[oi.h]
-      #combine with previously removed samples
-      oi = oi & oi.in
-      return(oi)
-    } 
+    #generate vector showing samples(s) to be removed
+    oi = data$seqN != data.ok$seqN[oi.o] & 
+      data$seqN != data.ok$seqN[oi.h]
+    #combine with previously removed samples
+    oi = oi & oi.in
   }
   
-  #If no new outliers are found or to be removed return the
-  #input oi vector
-  return(oi.in)
+  #calculate % missing or outliers
+  pbad = (length(oi[oi == FALSE]) - 10) / (length(oi) - 10)
+  
+  #if more than 10% of inj are bad or missing warn and exit MDO
+  if(pbad > 0.1){
+    stop("More than 10% of injections are bad, exiting MDO")
+  }
+  
+  #Return the oi vector including any additions
+  return(oi)
 }
 
 ## Collapse multiple injection data to averages and standard errors
@@ -483,13 +521,14 @@ qa.flag <- function(data, refs){
   slrm.h.sd <- sd(data$d2H_cm[data$ID==refs$refs[3]], na.rm=TRUE)
   ## calculates sd for slrm d2H
   
-  
-  data$ignore_run <- ifelse(slrm.o > slrm.o.max | 
-                              slrm.o < slrm.o.min | 
-                              slrm.h > slrm.h.max | 
-                              slrm.h < slrm.h.min | 
-                              slrm.o.sd > slrm.o.sd.max | 
-                              slrm.h.sd > slrm.h.sd.max, 1, 0)
+  data$ignore_run <- ifelse(slrm.o > refs$criteria$slrm.o.max | 
+                              slrm.o < refs$criteria$slrm.o.min | 
+                              slrm.h > refs$criteria$slrm.h.max | 
+                              slrm.h < refs$criteria$slrm.h.min | 
+                              slrm.o.sd > 
+                                refs$criteria$slrm.o.sd.max | 
+                              slrm.h.sd > 
+                                refs$criteria$slrm.h.sd.max, 1, 0)
   ## returns a 1 if any of the slrm quality parameters are violated
   ## and a 0 if not
   

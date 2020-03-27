@@ -55,17 +55,35 @@ check_files <- function(files){
                    strip.white=TRUE)
 
   ## checks that the necessary columns are present and returns
-  ## warnings as to whether they are or not
+  ## warnings if they are or not
   if(any(c("Port", "Inj.Nr", "d.18_16.Mean", "d.D_H.Mean") 
          %in% names(data) == FALSE)) { 
-    warning("data file is not correctly formatted, check that the machine
-    and date are correct and that the file is correctly formatted")
+    stop("data file is not correctly formatted, check that the 
+            machine and date are correct and check file format")
   } else {
-    message("data file correct")
+    message("data file format correct")
   }
   
+  # stores outlier/omit index info
+  oi = c(rep(FALSE, 10), rep(TRUE, nrow(data)-10))
+  
+  # set oi flag for missing lines
+  oi[is.na(data$H2O_Mean)] = FALSE
+  
+  # empty or missing lines
+  ml_1 = data$Port[!oi]
+  ml_2 = data$Inj.Nr[!oi]
+  ml = paste0(ml_1, "#", ml_2)
+  if(length(ml) > 10){
+    ml = ml[11:length(ml)]
+    ml = paste(ml, collapse = ", ")
+    warning("the following injections are missing:")
+    warning(ml)
+  }
+
   ## reads in sample ids file
-  ids <- read.csv(files$ids.file,stringsAsFactors=FALSE, strip.white=TRUE)
+  ids <- read.csv(files$ids.file,stringsAsFactors=FALSE, 
+                  strip.white=TRUE)
   
   ## renames columns
   names(ids) <- c("Tray","Port","ID","ID2")
@@ -74,11 +92,11 @@ check_files <- function(files){
   ## as to wehter it is correctly formatted or not
   if(length(colnames(ids))!=4 | is.numeric(ids[,2])==FALSE | 
        is.character(ids[,3])==FALSE) {
-    warning("ids file is not correctly formatted, check that the machine 
-    and date are correct, that the file is named correctly, and 
-            that the file is correctly formatted")
+    stop("ids file is not correctly formatted, check that the 
+            machine and date are correct, that the file is named 
+            correctly, and that the file is correctly formatted")
   } else {
-    message("ids file correct")
+    message("ids file format correct")
   }
   
   ## identifies the numeric part of the port column and converts
@@ -101,10 +119,7 @@ check_files <- function(files){
   ## they do or not
   if(any(data.ports.freq$Freq[data.ports.freq$Port>4] < 4) | 
        any(data.ports.freq$Freq[data.ports.freq$Port<=4] < 10)) {
-    warning("Missing rows in data, save the data file as a 
-    new file and add '_toAnalyze' at the end of the filename 
-    then add in blank rows for missing data before running 
-    function process.data") 
+    warning("Missing rows in data") 
   } else {
     message("data file complete")
   }
@@ -118,12 +133,14 @@ check_files <- function(files){
   if(any(id_ports %in% data.ports.freq$Port == FALSE) |
        any(data.ports.freq$Port %in% id_ports == FALSE)) {
     warning("Ports are not the same for data.file and ids.file, 
-    check them and ensure they are the same before 
-            running function process.data") 
+            check them and ensure they are the same before running 
+            function process.data") 
   } else {
     message("ids match")
   }
   
+  files$oi = oi
+  return(files)
 }
 
 process_data <- function(files){
@@ -140,8 +157,8 @@ process_data <- function(files){
   # add sequence number per injection
   df$seqN = seq_along(df[,1])
   
-  # stores outlier index info
-  oi = c(rep(FALSE, 10), rep(TRUE, nrow(df)-10))
+  # pull out outlier/omit index
+  oi = files$oi
   
   # continue the mdo cycle?
   mdo = TRUE
@@ -153,10 +170,10 @@ process_data <- function(files){
     mem <- mc.terms(df, oi)
     
     ## apply memory-correction terms to the d18O data
-    df$d18O_mc <- mc.corr(df, mem$o.mc, "O")
+    df$d18O_mc <- mc.corr(df, mem$o.mc, "O", oi)
     
     ## apply memory-correction terms to the d2H data
-    df$d2H_mc <- mc.corr(df, mem$h.mc, "H")
+    df$d2H_mc <- mc.corr(df, mem$h.mc, "H", oi)
     
     ## drift.reg function calculates regression of the  
     ## slrm data against sequence number
@@ -173,7 +190,7 @@ process_data <- function(files){
     }
   }
   
-  message("MDO operations completed successfully")
+  message("MDO operations completed")
   dc$Outlier = !oi
 
   ## collapse values to average per port
@@ -188,8 +205,12 @@ process_data <- function(files){
   d2H_cal = data.cal(da, "H", cal)
 
   ## combine calibrated data with da
-  dcal = cbind(da, d18O_cm = d18O_cal$calMean, d18O_csd = d18O_cal$calSD,
+  dcal = cbind(da, d18O_cm = d18O_cal$calMean, 
+               d18O_csd = d18O_cal$calSD,
                d2H_cm = d2H_cal$calMean, d2H_csd = d2H_cal$calSD)
+  
+  # update message
+  message("Calibration completed")
 
   flagged <- qa.flag(dcal, refs)
   ## qa.flag function evaluates the data against the predetermined
@@ -220,6 +241,9 @@ process_data <- function(files){
   
   data.all <- dc[!(dc$ID %in% refs$refs),]
   ## subsets df to include only non-reference data
+  
+  #update message
+  message("QA/QC screening completed")
   
   return(list(samples.summary = samples.summary, 
               slrm.summary = slrm.summary, 
@@ -254,6 +278,10 @@ print_format <- function(data){
 
   samples.s[,4:7] <- round(samples.s[,4:7],2)
   ## rounds columns 4-7 to 2 decimal places
+  
+  #typecast Port to numeric and sort
+  samples.s$Port = as.numeric(samples.s$Port)
+  samples.s = samples.s[order(samples.s$Port),]
 
   return(list(qa = qa.print, samples.summary = samples.s))
 }

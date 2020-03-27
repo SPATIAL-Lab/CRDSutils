@@ -19,14 +19,14 @@ editor_options:
 Load functions.
 
 ```{r load}
-library(sf)
+library(CRDS-processing)
 ```
 
 Set variables.
 
 ```{r variables}
-runDate = "2020-02-19"
-instrument = "hids2052"
+runDate = "2020-03-05"
+instrument = "hids2046"
 init()
 ```
 
@@ -34,7 +34,7 @@ init()
 
 ```{r check}
 files = file_lookup(instrument, runDate, dataPath)
-check_files(files)
+files = check_files(files)
 ```
 
 # Calibrate Data
