@@ -19,13 +19,15 @@ editor_options:
 Load functions.
 
 ```{r load}
-library(CRDS-processing)
+#library(CRDS-processing)
+source("R/CRDS_liquid_1.R")
+source("R/CRDS_liquid_2.R")
 ```
 
 Set variables.
 
 ```{r variables}
-runDate = "2020-03-05"
+runDate = "2020-03-17"
 instrument = "hids2046"
 init()
 ```
@@ -41,6 +43,11 @@ files = check_files(files)
 
 ```{r calibrate}
 corrected = process_data(files)
+```
+
+# Review Data
+
+```{r review}
 review_data(corrected)
 ```
 
@@ -48,5 +55,5 @@ review_data(corrected)
 
 ```{r write}
 #db(corrected, analyst)
-excel(files$ids.file,corrected)
+excel(files,corrected)
 ```

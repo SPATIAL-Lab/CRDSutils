@@ -10,19 +10,7 @@
 refRead = function(refFile){
   ## reads in qa file
   qa <- read.csv(refFile, stringsAsFactors=FALSE)
-  
-  ## creates a character vector with the name of plrm1
-  plrm1 <- qa$ID[qa$parameter=="plrm1"]
-  
-  ## creates a character vector with the name of plrm2
-  plrm2 <- qa$ID[qa$parameter=="plrm2"]
-  
-  ## creates a character vector with the name of slrm
-  slrm <- qa$ID[qa$parameter=="slrm"]
-  
-  # combine reference names  
-  refs <- c(plrm1, plrm2, slrm)  
-  
+
   criteria = list(
   #slrm d18O max acceptable value
     slrm.o.max = qa$max[qa$parameter=="slrm_O_range"],
@@ -41,21 +29,25 @@ refRead = function(refFile){
   #sample d2H max acceptable sd
     sample.h.sd.max = qa$max[qa$parameter=="sample_H_sd"])
 
-  ## creates a vector with the known d18O values for plrm1 & plrm2
-  o.known = c(qa$d18O_known[qa$parameter=="plrm1"],
-               qa$d18O_known[qa$parameter=="plrm2"])
-  o.known.sd = c(qa$d18O_sd[qa$parameter=="plrm1"],
-                 qa$d18O_sd[qa$parameter=="plrm2"])
+  refs = data.frame(ID = c(qa$ID[qa$parameter=="plrm1"],
+                            qa$ID[qa$parameter=="plrm2"], 
+                            qa$ID[qa$parameter=="slrm"]),
+                    o.known = c(qa$d18O_known[qa$parameter=="plrm1"],
+                                qa$d18O_known[qa$parameter=="plrm2"],
+                                qa$d18O_known[qa$parameter=="slrm"]),
+                    o.known.sd = c(qa$d18O_sd[qa$parameter=="plrm1"],
+                                   qa$d18O_sd[qa$parameter=="plrm2"],
+                                   qa$d18O_sd[qa$parameter=="slrm"]),
+                    h.known = c(qa$d2H_known[qa$parameter=="plrm1"],
+                                qa$d2H_known[qa$parameter=="plrm2"],
+                                qa$d2H_known[qa$parameter=="slrm"]),
+                    h.known.sd = c(qa$d2H_sd[qa$parameter=="plrm1"],
+                                   qa$d2H_sd[qa$parameter=="plrm2"],
+                                   qa$d2H_sd[qa$parameter=="slrm"]),
+                    row.names = c("plrm1", "plrm2", "slrm"),
+                    stringsAsFactors = FALSE)
   
-  ## creates a vector with the known d18O values for plrm1 & plrm2
-  h.known = c(qa$d2H_known[qa$parameter=="plrm1"],
-               qa$d2H_known[qa$parameter=="plrm2"])
-  h.known.sd = c(qa$d2H_sd[qa$parameter=="plrm1"],
-                 qa$d2H_sd[qa$parameter=="plrm2"])
-  
-  return(list(refs = refs, o.known = o.known, criteria = criteria,
-              o.known.sd = o.known.sd, h.known = h.known,
-              h.known.sd = h.known.sd))
+  return(list(refs = refs, criteria = criteria))
 }
 
 ## Reads in the relevant files, modifies and merges them
@@ -107,23 +99,18 @@ data.mod <- function(data.file, ids.file){
 }
 
 ## Generates memory-correction terms for d18O & d2H 
-mc.terms <- function(data, oi){ 
+mc.terms <- function(data, mem, oi){ 
   ## data is the dataframe created using the data.mod function
   ## ports is a vector with the port numbers to be used to calculate
   ## the memory-correction terms
   ## injs is a vector with the injections to calculate 
   ## memory-correction terms for
   
-  #initial guesses
-  n = seq(1:8)
-  o.mc = exp(-n) / 8
-  h.mc = exp(-n) / 4
-  
   #ensure sorting by seqN
   data = data[order(data$seqN),]
   
   #numerical optimization for d18O
-  o.mc.opt = optim(o.mc, mc.score, data = data, element = "O",
+  o.mc.opt = optim(mem$o.mc, mc.score, data = data, element = "O",
                    oi = oi, method = "L-BFGS-B", lower = 0)
   #check for convergence
   if(o.mc.opt$convergence != 0){
@@ -131,7 +118,7 @@ mc.terms <- function(data, oi){
   }
   
   #same for d2H
-  h.mc.opt = optim(h.mc, mc.score, data = data, element = "H",
+  h.mc.opt = optim(mem$h.mc, mc.score, data = data, element = "H",
                    oi = oi, method = "L-BFGS-B", lower = 0)
   if(h.mc.opt$convergence != 0){
     warning("H memory correction did not converge")
@@ -212,98 +199,7 @@ mc.corr = function(data, mc, element, oi){
   #return vector of corrected values
   return(vals.mc)
 }
-
-## calculates a calbiration regression for d18O and d2H based
-## on plrm values
-cal.reg <- function(data, refs){
-  ## data is the dataframe created using the data.mod function and 
-  ## updated with memory-corrected values using the data.mc function
-
-  ## creates a vector with the mean measured d18O values for 
-  ## plrm1 and plrm 2 
-  o.meas <- c(data$d18O_avg[data$ID == refs$refs[1]],
-              data$d18O_avg[data$ID == refs$refs[2]])
-  o.meas.sem <- c(data$d18O_sem[data$ID == refs$refs[1]],
-              data$d18O_sem[data$ID == refs$refs[2]])
-  
-  ## creates a vector with the mean measured d2H values for 
-  ## plrm1 and plrm 2  
-  h.meas <- c(data$d2H_avg[data$ID == refs$refs[1]],
-              data$d2H_avg[data$ID == refs$refs[2]])
-  h.meas.sem <- c(data$d2H_sem[data$ID == refs$refs[1]],
-              data$d2H_sem[data$ID == refs$refs[2]])
-  
-  #Simulate known values for PLRMs
-  o.known.sim = matrix(c(rnorm(1000, refs$o.known[1], 
-                               refs$o.known.sd[1]),
-                           rnorm(1000, refs$o.known[2], 
-                                 refs$o.known.sd[2])), ncol=2)
-  h.known.sim = matrix(c(rnorm(1000, refs$h.known[1], 
-                               refs$h.known.sd[1]),
-                           rnorm(1000, refs$h.known[2], 
-                                 refs$h.known.sd[2])), ncol=2)
-
-  #Simulate measured values for PLRMs
-  o.meas.sim = matrix(c(rnorm(1000, o.meas[1], o.meas.sem[1]),
-                           rnorm(1000, o.meas[2], o.meas.sem[2])),
-                      ncol=2)
-  
-  h.meas.sim = matrix(c(rnorm(1000, h.meas[1], h.meas.sem[1]),
-                           rnorm(1000, h.meas[2], h.meas.sem[2])),
-                      ncol=2)
-  
-  o.slope = apply(o.known.sim, 1, diff) / apply(o.meas.sim, 1, diff)
-  o.int = o.known.sim[,1] - o.slope * o.meas.sim[,1]
-  ##regression for d18O
-  
-  h.slope = apply(h.known.sim, 1, diff) / apply(h.meas.sim, 1, diff)
-  h.int = h.known.sim[,1] - h.slope * h.meas.sim[,1]
-  ##regression for d2H
-  
-  return(list(o.slope = o.slope, 
-              o.int = o.int,
-              h.slope = h.slope, 
-              h.int = h.int))
-}
-
-## Calibrates data for the specified element 
-data.cal <- function(data,element,cal){
-  ## data is the dataframe created using the data.mod function and 
-  ## updated with memory-corrected values using the data.mc function
-  ## element is either "O" or "H"
-  ## cal is the list created using the cal.reg function
-  
-  uncalData = if(element =="O"){
-    data.frame("AVG" = data$d18O_avg, "SEM" = data$d18O_sem)
-  }else if(element=="H"){
-    data.frame("AVG" = data$d2H_avg, "SEM" = data$d2H_sem)
-  } 
-  ##dictates column used
-  
-  cal.slope <-if(element=="O"){cal$o.slope
-  }else if(element=="H"){cal$h.slope} 
-  ## dictates slope used
-  
-  cal.int <-if(element=="O"){cal$o.int
-  }else if(element=="H"){cal$h.int} 
-  ## dictates intercept used
-  
-  calMean = calSD = double()
-  
-  for(i in 1:nrow(uncalData)){
-    calData = rnorm(1000, uncalData[i,1], uncalData[i,2]) * cal.slope + cal.int
-    calMean = c(calMean, mean(calData))
-    calSD = c(calSD, sd(calData))
-  }
-
-  ## calculates calibrated values for the
-  ## specified column. Format is 
-  ## memory-corrected value * slope + intercept
-  
-  return(list(calMean = calMean, calSD = calSD))
-}
-
-## Calculates drift regression lines for d18O and d2H
+## Calculates drift spline fit for d18O and d2H
 drift.reg <- function(data, refs, oi, genPlot = TRUE){
   ## data is the dataframe created using the data.mod function and 
   ## updated using the data.mc function and data.cal function
@@ -313,7 +209,8 @@ drift.reg <- function(data, refs, oi, genPlot = TRUE){
   #Remove outliers
   data = data[oi,]
   
-  data.slrm = data[data$ID == refs$refs[3] & data$Port > 1,]
+  data.slrm = data[data$ID == refs$refs["slrm", "ID"] & 
+                     data$Port > 1,]
   ## subsets data to include only slrm water and excluding port 1
   
   data.slrm$seqN = data.slrm$seqN - 20
@@ -325,12 +222,25 @@ drift.reg <- function(data, refs, oi, genPlot = TRUE){
                  by = list(Port = data.slrm$Port),
                  mean, na.rm = TRUE)
   
-  ## spline fits to slrm port averages
-  o = smooth.spline(data.slrm$seqN, data.slrm$d18O_mc, 
-                    df = ceiling(nrow(data.slrm)/2))
-  h = smooth.spline(data.slrm$seqN, data.slrm$d2H_mc,
-                    df = ceiling(nrow(data.slrm)/2))
+  # set degrees of freedom for spline
+  sdf = ceiling(nrow(data.slrm)/2)
   
+  if(sdf == 1){
+    ## spline fits to slrm port averages, hacked for small runs
+    o = smooth.spline(seq(1:100), rep(mean(data.slrm$d18O_mc), 100), 
+                      df = sdf)
+    h = smooth.spline(seq(1:100), rep(mean(data.slrm$d2H_mc), 100),
+                      df = sdf)   
+  } else{
+    ## spline fits to slrm port averages
+    o = smooth.spline(data.slrm$seqN, data.slrm$d18O_mc, 
+                      df = sdf)
+    h = smooth.spline(data.slrm$seqN, data.slrm$d2H_mc,
+                      df = sdf)
+  }
+  
+
+  #Plot the slrm data and spline fits
   if(genPlot){
     par(mar = c(5,5,1,5))
     plot(data.slrm$seqN, data.slrm$d18O_mc, pch=21, bg = "light blue",
@@ -349,6 +259,7 @@ drift.reg <- function(data, refs, oi, genPlot = TRUE){
     lines(hp, col = "red")
   }
   
+  #return spline objects
   return(list(o = o, h = h))
 }
 
@@ -448,17 +359,37 @@ outlier = function(data, oi.in){
     
     # warn about removal
     if(!is.null(oi.o)){
-      rm = paste("Oxygen outlier detected - Port", 
-                 data.ok$Port[oi.o], "Inj",
-                 data.ok$inj[oi.o])   
-      warning(rm)
+      if(!is.null(oi.h)){
+        if(oi.o == oi.h){
+          rm = paste("Oxygen & hydrogen outlier detected - Port", 
+                     data.ok$Port[oi.o], "Inj",
+                     data.ok$inj[oi.o])   
+          warning(rm)          
+        } else{
+          rm = paste("Oxygen outlier detected - Port", 
+                     data.ok$Port[oi.o], "Inj",
+                     data.ok$inj[oi.o])   
+          warning(rm)
+          rm = paste("Hydrogen outlier detected - Port", 
+                     data.ok$Port[oi.h], "Inj",
+                     data.ok$inj[oi.h])   
+          warning(rm)
+        }
+      } else{
+        rm = paste("Oxygen outlier detected - Port", 
+                   data.ok$Port[oi.o], "Inj",
+                   data.ok$inj[oi.o])   
+        warning(rm)        
+      }
+    } else{
+      if(!is.null(oi.h)){
+        rm = paste("Hydrogen outlier detected - Port", 
+                   data.ok$Port[oi.h], "Inj",
+                   data.ok$inj[oi.h])   
+        warning(rm)
+      }      
     }
-    if(!is.null(oi.h)){
-      rm = paste("Hydrogen outlier detected - Port", 
-                 data.ok$Port[oi.h], "Inj",
-                 data.ok$inj[oi.h])   
-      warning(rm)
-    }
+
     
     #generate vector showing samples(s) to be removed
     oi = data$seqN != data.ok$seqN[oi.o] & 
@@ -477,6 +408,100 @@ outlier = function(data, oi.in){
   
   #Return the oi vector including any additions
   return(oi)
+}
+
+## calculates a calbiration regression for d18O and d2H based
+## on plrm values
+cal.reg <- function(data, refs){
+  ## data is the dataframe created using the data.mod function and 
+  ## updated with memory-corrected values using the data.mc function
+  
+  ## creates a vector with the mean measured d18O values for 
+  ## plrm1 and plrm 2 
+  o.meas <- c(data$d18O_avg[data$ID %in% 
+                              refs$refs[c("plrm1", "plrm2"), "ID"]])
+  o.meas.sem <- c(data$d18O_sem[data$ID %in% 
+                                  refs$refs[c("plrm1", "plrm2"), 
+                                            "ID"]])
+  
+  ## creates a vector with the mean measured d2H values for 
+  ## plrm1 and plrm 2  
+  h.meas <- c(data$d2H_avg[data$ID %in% 
+                             refs$refs[c("plrm1", "plrm2"), "ID"]])
+  h.meas.sem <- c(data$d2H_sem[data$ID %in% 
+                                 refs$refs[c("plrm1", "plrm2"), 
+                                           "ID"]])
+  
+  #Simulate known values for PLRMs
+  o.known.sim = matrix(c(rnorm(1000, refs$refs["plrm1",]$o.known, 
+                               refs$refs["plrm1",]$o.known.sd),
+                         rnorm(1000, refs$refs["plrm2",]$o.known, 
+                               refs$refs["plrm2",]$o.known.sd)), 
+                       ncol=2)
+  h.known.sim = matrix(c(rnorm(1000, refs$refs["plrm1",]$h.known, 
+                               refs$refs["plrm1",]$h.known.sd),
+                         rnorm(1000, refs$refs["plrm2",]$h.known, 
+                               refs$refs["plrm2",]$h.known.sd)), 
+                       ncol=2)
+  
+  #Simulate measured values for PLRMs
+  o.meas.sim = matrix(c(rnorm(1000, o.meas[1], o.meas.sem[1]),
+                        rnorm(1000, o.meas[2], o.meas.sem[2])),
+                      ncol=2)
+  
+  h.meas.sim = matrix(c(rnorm(1000, h.meas[1], h.meas.sem[1]),
+                        rnorm(1000, h.meas[2], h.meas.sem[2])),
+                      ncol=2)
+  
+  o.slope = apply(o.known.sim, 1, diff) / apply(o.meas.sim, 1, diff)
+  o.int = o.known.sim[,1] - o.slope * o.meas.sim[,1]
+  ##regression for d18O
+  
+  h.slope = apply(h.known.sim, 1, diff) / apply(h.meas.sim, 1, diff)
+  h.int = h.known.sim[,1] - h.slope * h.meas.sim[,1]
+  ##regression for d2H
+  
+  return(list(o.slope = o.slope, 
+              o.int = o.int,
+              h.slope = h.slope, 
+              h.int = h.int))
+}
+
+## Calibrates data for the specified element 
+data.cal <- function(data,element,cal){
+  ## data is the dataframe created using the data.mod function and 
+  ## updated with memory-corrected values using the data.mc function
+  ## element is either "O" or "H"
+  ## cal is the list created using the cal.reg function
+  
+  uncalData = if(element =="O"){
+    data.frame("AVG" = data$d18O_avg, "SEM" = data$d18O_sem)
+  }else if(element=="H"){
+    data.frame("AVG" = data$d2H_avg, "SEM" = data$d2H_sem)
+  } 
+  ##dictates column used
+  
+  cal.slope <-if(element=="O"){cal$o.slope
+  }else if(element=="H"){cal$h.slope} 
+  ## dictates slope used
+  
+  cal.int <-if(element=="O"){cal$o.int
+  }else if(element=="H"){cal$h.int} 
+  ## dictates intercept used
+  
+  calMean = calSD = double()
+  
+  for(i in 1:nrow(uncalData)){
+    calData = rnorm(1000, uncalData[i,1], uncalData[i,2]) * cal.slope + cal.int
+    calMean = c(calMean, mean(calData))
+    calSD = c(calSD, sd(calData))
+  }
+  
+  ## calculates calibrated values for the
+  ## specified column. Format is 
+  ## memory-corrected value * slope + intercept
+  
+  return(list(calMean = calMean, calSD = calSD))
 }
 
 ## Collapse multiple injection data to averages and standard errors
@@ -512,16 +537,18 @@ qa.flag <- function(data, refs){
   ## qa.file is the filename of a csv as described in the cal.reg 
   ## function 
   
-  slrm.o <- mean(data$d18O_cm[data$ID==refs$refs[3]], na.rm=TRUE)
+  slrmID = refs$refs["slrm",]$ID
+  
+  slrm.o <- mean(data$d18O_cm[data$ID==slrmID], na.rm=TRUE)
   ## calculates mean for slrm d18O
   
-  slrm.h <- mean(data$d2H_cm[data$ID==refs$refs[3]], na.rm=TRUE)
+  slrm.h <- mean(data$d2H_cm[data$ID==slrmID], na.rm=TRUE)
   ## calculates mean for slrm d2H
   
-  slrm.o.sd <- sd(data$d18O_cm[data$ID==refs$refs[3]], na.rm=TRUE)
+  slrm.o.sd <- sd(data$d18O_cm[data$ID==slrmID], na.rm=TRUE)
   ## calculates sd for slrm d18O
   
-  slrm.h.sd <- sd(data$d2H_cm[data$ID==refs$refs[3]], na.rm=TRUE)
+  slrm.h.sd <- sd(data$d2H_cm[data$ID==slrmID], na.rm=TRUE)
   ## calculates sd for slrm d2H
   
   data$ignore_run <- ifelse(slrm.o > refs$criteria$slrm.o.max | 
@@ -579,21 +606,19 @@ qa.summary <- function(data.file, refs, mem, drift, cal, flagged){
   ## cal is a list created by the cal.reg function
   ## flagged is a dataframe created by the qa.flag function
   
+  slrmID = refs$refs["slrm",]$ID
+ 
   #Mean for slrm d18O
-  slrm.o <- mean(flagged$d18O_cm[flagged$ID == refs$refs[3]], 
-                 na.rm=TRUE)
+  slrm.o <- mean(flagged$d18O_cm[flagged$ID == slrmID], na.rm=TRUE)
 
   #Mean for slrm d2H
-  slrm.h <- mean(flagged$d2H_cm[flagged$ID == refs$refs[3]],
-                 na.rm=TRUE)
+  slrm.h <- mean(flagged$d2H_cm[flagged$ID == slrmID], na.rm=TRUE)
 
   #SD for slrm d18O
-  slrm.o.sd <- sd(flagged$d18O_cm[flagged$ID == refs$refs[3]],
-                  na.rm=TRUE)
+  slrm.o.sd <- sd(flagged$d18O_cm[flagged$ID == slrmID], na.rm=TRUE)
 
   #SD for slrm d2H
-  slrm.h.sd <- sd(flagged$d2H_cm[flagged$ID == refs$refs[3]],
-                  na.rm=TRUE)
+  slrm.h.sd <- sd(flagged$d2H_cm[flagged$ID == slrmID], na.rm=TRUE)
 
   ## uses regular expressions to pull the instrument name out 
   ## of the file name
@@ -634,7 +659,7 @@ qa.summary <- function(data.file, refs, mem, drift, cal, flagged){
                                      mean(cal$h.int), slrm.o, 
                                      slrm.h, slrm.o.sd, slrm.h.sd,
                                      nrow(flagged[flagged$ID ==
-                                                    refs$refs[3],]),
+                                                    slrmID,]),
                                      flagged$ignore_run[1]))
   summary$value <- as.character(summary$value)
 

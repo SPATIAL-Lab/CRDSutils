@@ -163,11 +163,17 @@ process_data <- function(files){
   # continue the mdo cycle?
   mdo = TRUE
   
+  #initial memory parameter guesses
+  n = seq(1:8)
+  o.mc = exp(-n) / 8
+  h.mc = exp(-n) / 4
+  mem = list(o.mc = o.mc, h.mc = h.mc)
+  
   # cycle to fit/apply memory and drift corrections,
   # remove outliers, and repeat corrections 
   while(mdo){
     ## generate memory-correction terms for the data
-    mem <- mc.terms(df, oi)
+    mem <- mc.terms(df, mem, oi)
     
     ## apply memory-correction terms to the d18O data
     df$d18O_mc <- mc.corr(df, mem$o.mc, "O", oi)
@@ -219,27 +225,24 @@ process_data <- function(files){
   ## qa.summary function summarizes the qa metrics for the run
   qa.report <- qa.summary(files$data.file, refs, mem, drift,
                           cal, flagged)
-  
-  ## subsets qa.df to include only rows 10-12 & columns 2, 5 & 6
-  qa.df2 <- qa.df[10:12,c(2,5:8)]
 
   ## build up dataframe comparing known and measured LRM values
   ref.df = flagged[flagged$Port %in% c(2:4), c(2, 8, 6, 9, 10, 7, 11)]
-  ref.comp.o = merge(qa.df2[,c(1, 2, 4)], ref.df[,1:4])
-  ref.comp.h = merge(qa.df2[,c(1, 3, 5)], ref.df[,c(1, 5:7)])
+  ref.comp.o = merge(ref.df[,1:4], refs$refs[,1:3])
+  ref.comp.h = merge(ref.df[,c(1, 5:7)], refs$refs[,c(1, 4:5)])
   ref.comp = merge(ref.comp.o, ref.comp.h)
   ref.comp[, 2:11] = round(ref.comp[, 2:11], 2)
   
-  samples.summary <- flagged[!(flagged$ID %in% refs$refs),]
+  samples.summary <- flagged[!(flagged$ID %in% refs$refs[,"ID"]),]
   ## subsets flagged df to include only non-reference data
   
-  slrm.summary <- flagged[flagged$ID == refs$refs[3],]
+  slrm.summary <- flagged[flagged$ID == refs$refs["slrm","ID"],]
   ## subsets flagged df to inlcude only data for slrm
   
-  ref.all <- dc[dc$ID %in% refs$refs,]
+  ref.all <- dc[dc$ID %in% refs$refs[,"ID"],]
   ## subsets df to include only data for references
   
-  data.all <- dc[!(dc$ID %in% refs$refs),]
+  data.all <- dc[!(dc$ID %in% refs$refs[,"ID"]),]
   ## subsets df to include only non-reference data
   
   #update message
@@ -451,7 +454,7 @@ close(channel)
 }
 
 #Write tables to tabs in xlsx file for backup/archive
-excel <- function(file,data){
+excel <- function(files, data){
   ## file is the filename of a csv with sample ids formatted 
   ## with the date, sample description, and machine name (e.g. 
   ## 150310_SIRFER 14-217_HIDS2046.csv)
@@ -460,18 +463,15 @@ excel <- function(file,data){
 
   library(openxlsx)
   ## loads openxlsx library
-
-  output_file <- sub("hids2046/runfiles/|hids2053/runfiles/|hids2052/runfiles/",
-                     "",file)
+  
+  chunks = unlist(strsplit(files$ids.file, "/"))
+  output_file = paste0(outPath, "/", chunks[length(chunks)])
   ## creates a filename to be used for the excel file by modifying
   ## the sample ids filename
   
   output_file <- sub(".csv",".xlsx",output_file)
   ## modifies output_file with the correct file extension
   
-  output_file <- paste0("Bowen_Lab/CRDS_liquidH2O/",output_file)
-  ## modifies output_file with the filepath information
-
   if(file.exists(output_file)){file.remove(output_file)}
   ## removes the output_file if it already exists
   
