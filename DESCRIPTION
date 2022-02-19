@@ -1,0 +1,20 @@
+Package: CRDSutils
+Type: Package
+Title: Picarro L21X0-i Utilities  
+Version: 0.1.0.9000
+Authors@R: person("Gabe", "Bowen", email = "gabe.bowen@utah.edu",
+                  role = c("aut", "cre"))
+Maintainer: Gabe Bowen <gabe.bowen@utah.edu>
+Description: Data processing routines developed by/for the SPATIAL facility 
+    at the University of Utah.
+Imports: RODBC, openxls
+Depends: R (>= 3.5)
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    covr
+VignetteBuilder: knitr
+License: GPL-3
+Language: en-US
+Encoding: UTF-8

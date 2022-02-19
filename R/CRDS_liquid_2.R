@@ -1,8 +1,17 @@
 ##High-level functions for CRDS water isotope data reduction
 
+#Write configuration file
+write_config = function(){
+  fp = readline("File path contining CRDS data directories: \n")
+  
+  cf = file("~/.crds.config", open = "wt")
+  writeLines(paste0("dataPath=", fp), cf)
+  close(cf)
+}
+
 #Initialize paths and variables
 init = function(){
-  cfg = readLines(".crds.config")
+  cfg = readLines("~/.crds.config")
   cfg = strsplit(cfg, "=")
 
   for(i in cfg) {
@@ -341,9 +350,6 @@ db <- function(data, analyst){
   ## data is a list of dataframes such as that created by the 
   ## process.crds function that includes qa.report & samples.summary
 
-  library(RODBC)
-  ## loads RODBC library
-
   qa <- data$qa.report
   ## stores the qa.report table
   
@@ -461,9 +467,6 @@ excel <- function(files, data){
   ## data is a list of dataframes such as that created by the 
   ## process.crds function that includes 6 tables
 
-  library(openxlsx)
-  ## loads openxlsx library
-  
   chunks = unlist(strsplit(files$ids.file, "/"))
   output_file = paste0(outPath, "/", chunks[length(chunks)])
   ## creates a filename to be used for the excel file by modifying
