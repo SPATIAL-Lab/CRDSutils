@@ -1,8 +1,14 @@
-export(init)
+export(write_config)
 export(file_lookup)
 export(check_files)
 export(process_data)
 export(review_data)
 export(excel)
+export(db)
+importFrom("graphics", "abline", "axis", "lines", "mtext", "par",
+               "points")
+importFrom("stats", "aggregate", "complete.cases", "lm", "optim",
+               "predict", "rnorm", "sd", "smooth.spline", "var")
+importFrom("utils", "read.csv", "tail")
 importFrom(RODBC, odbcConnect, sqlQuery)
-importFrom(openxls, createWorkbook, addWorksheet, writeData, saveWorkbook)
+importFrom(openxlsx, createWorkbook, addWorksheet, writeData, saveWorkbook)

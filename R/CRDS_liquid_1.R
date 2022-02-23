@@ -7,6 +7,19 @@
 ###         the mean values. Finally, there are functions         ###
 ###         that quality-check the final values                   ###
 
+#Initialize paths and variables
+init = function(){
+  cfg = readLines("~/.crds.config")
+  cfg = strsplit(cfg, "=")
+  
+  for(i in cfg) {
+    assign(i[1], i[2], envir = parent.frame())
+    #    message(paste(i[1], i[2], sep = "="))
+  } 
+  
+  return()
+}
+
 refRead = function(refFile){
   ## reads in qa file
   qa <- read.csv(refFile, stringsAsFactors=FALSE)

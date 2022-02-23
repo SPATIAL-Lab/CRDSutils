@@ -27,15 +27,14 @@ source("R/CRDS_liquid_2.R")
 Set variables.
 
 ```{r variables}
-runDate = "2020-03-17"
+runDate = "2022-02-01"
 instrument = "hids2046"
-init()
 ```
 
 # Check Files
 
 ```{r check}
-files = file_lookup(instrument, runDate, dataPath)
+files = file_lookup(instrument, runDate)
 files = check_files(files)
 ```
 
@@ -55,5 +54,5 @@ review_data(corrected)
 
 ```{r write}
 #db(corrected, analyst)
-excel(files,corrected)
+excel(files, corrected)
 ```

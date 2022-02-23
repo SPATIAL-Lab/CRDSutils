@@ -7,7 +7,7 @@ Authors@R: person("Gabe", "Bowen", email = "gabe.bowen@utah.edu",
 Maintainer: Gabe Bowen <gabe.bowen@utah.edu>
 Description: Data processing routines developed by/for the SPATIAL facility 
     at the University of Utah.
-Imports: RODBC, openxls
+Imports: RODBC, openxlsx
 Depends: R (>= 3.5)
 Suggests: 
     knitr,
