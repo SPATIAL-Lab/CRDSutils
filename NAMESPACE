@@ -5,10 +5,13 @@ export(process_data)
 export(review_data)
 export(excel)
 export(db)
+export(init)
+export(knit)
 importFrom("graphics", "abline", "axis", "lines", "mtext", "par",
                "points")
 importFrom("stats", "aggregate", "complete.cases", "lm", "optim",
                "predict", "rnorm", "sd", "smooth.spline", "var")
 importFrom("utils", "read.csv", "tail")
+importFrom(rmarkdown, render)
 importFrom(RODBC, odbcConnect, sqlQuery)
 importFrom(openxlsx, createWorkbook, addWorksheet, writeData, saveWorkbook)

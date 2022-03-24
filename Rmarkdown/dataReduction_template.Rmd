@@ -1,6 +1,6 @@
 ---
 title: "CRDS HO Data Reduction"
-author: "Gabe Bowen"
+author: "`r CRDSutils::init()$user`"
 date: "`r format(Sys.Date(), '%d %b %Y')`"
 output:
   html_document: 
@@ -10,6 +10,15 @@ output:
     toc_float: true
     toc_depth: 3
     code_folding: show
+params:
+  runDate:
+    label: "Run Date (YYYY-MM-DD)"
+    value: 2022-01-01
+  instrument:
+    label: "CRDS Instrument"
+    value: hids2046
+    input: select
+    choices: [hids2046, hids2052, hids2053]
 editor_options:
   chunk_output_type: console
 ---
@@ -18,23 +27,14 @@ editor_options:
 
 Load functions.
 
-```{r load}
-#library(CRDS-processing)
-source("R/CRDS_liquid_1.R")
-source("R/CRDS_liquid_2.R")
-```
-
-Set variables.
-
-```{r variables}
-runDate = "2022-02-01"
-instrument = "hids2046"
+```{r load, include = FALSE}
+library(CRDSutils)
 ```
 
 # Check Files
 
 ```{r check}
-files = file_lookup(instrument, runDate)
+files = file_lookup(params$instrument, params$runDate)
 files = check_files(files)
 ```
 

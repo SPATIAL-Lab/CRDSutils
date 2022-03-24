@@ -11,13 +11,14 @@
 init = function(){
   cfg = readLines("~/.crds.config")
   cfg = strsplit(cfg, "=")
-  
-  for(i in cfg) {
-    assign(i[1], i[2], envir = parent.frame())
-    #    message(paste(i[1], i[2], sep = "="))
-  } 
-  
-  return()
+
+  cfgn = list()
+  for(i in seq_along(cfg)){
+    cfgn[[i]] = cfg[[i]][2]
+    names(cfgn)[i] = cfg[[i]][1]
+  }
+
+  return(cfgn)
 }
 
 refRead = function(refFile){
