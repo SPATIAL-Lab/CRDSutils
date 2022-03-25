@@ -24,28 +24,36 @@ editor_options:
 library(CRDSutils)
 ```
 
+```{r, echo = FALSE}
+cat(paste("Instrument =", instrument))
+cat(paste("Run Date =", runDate))
+pv = packageVersion("CRDSutils")
+cat(paste("CRDSutils Version =", pv))
+```
+
 # Check Files
 
-```{r check}
+```{r check, echo = FALSE}
 files = file_lookup(params$instrument, params$runDate)
 files = check_files(files)
 ```
 
 # Calibrate Data
 
-```{r calibrate}
+```{r calibrate, echo = FALSE}
 corrected = process_data(files)
 ```
 
 # Review Data
 
-```{r review}
-review_data(corrected)
+```{r review, results = "alias", echo = FALSE}
+library(knitr)
+rd = review_data(corrected)
+kable(rd$qa, caption = "QA Results")
+kable(rd$data, caption = "Data Summary")
 ```
 
-# Write Output
-
-```{r write}
+```{r write, include=FALSE}
 #db(corrected, analyst)
 excel(files, corrected)
 ```

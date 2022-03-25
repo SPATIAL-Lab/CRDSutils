@@ -7,20 +7,6 @@
 ###         the mean values. Finally, there are functions         ###
 ###         that quality-check the final values                   ###
 
-#Initialize paths and variables
-init = function(){
-  cfg = readLines("~/.crds.config")
-  cfg = strsplit(cfg, "=")
-
-  cfgn = list()
-  for(i in seq_along(cfg)){
-    cfgn[[i]] = cfg[[i]][2]
-    names(cfgn)[i] = cfg[[i]][1]
-  }
-
-  return(cfgn)
-}
-
 refRead = function(refFile){
   ## reads in qa file
   qa <- read.csv(refFile, stringsAsFactors=FALSE)
@@ -213,6 +199,7 @@ mc.corr = function(data, mc, element, oi){
   #return vector of corrected values
   return(vals.mc)
 }
+
 ## Calculates drift spline fit for d18O and d2H
 drift.reg <- function(data, refs, oi, genPlot = TRUE){
   ## data is the dataframe created using the data.mod function and 
@@ -256,10 +243,10 @@ drift.reg <- function(data, refs, oi, genPlot = TRUE){
 
   #Plot the slrm data and spline fits
   if(genPlot){
-    par(mar = c(5,5,1,5))
+    par(mar = c(5,5,3,5))
     plot(data.slrm$seqN, data.slrm$d18O_mc, pch=21, bg = "light blue",
-         ylab = "", xlab = "Sequence number")
-    mtext("d18O", 2, 3, col = "light blue")
+         ylab = "", xlab = "Sequence number", main = "Drift Correction")
+    mtext(expression(delta^{18}*"O"), 2, 3, col = "light blue")
     op = predict(o, floor(min(data.slrm$seqN)):
                           ceiling(max(data.slrm$seqN)))
     lines(op, col = "light blue")
@@ -267,7 +254,7 @@ drift.reg <- function(data, refs, oi, genPlot = TRUE){
     plot(data.slrm$seqN, data.slrm$d2H_mc, pch=21, bg = "red", 
          axes = FALSE, ylab = "", xlab = "")
     axis(4)
-    mtext("d2H", 4, 3, col = "red")
+    mtext(expression(delta^{2}*"H"), 4, 3, col = "red")
     hp = predict(h, floor(min(data.slrm$seqN)):
                    ceiling(max(data.slrm$seqN)))
     lines(hp, col = "red")
@@ -347,15 +334,15 @@ outlier = function(data, oi.in){
   # if any outliers are detected
   if(!is.null(oi.o) & !is.null(oi.h)){
     # plot the sequence and the most extreme
-    par(mar = c(5,5,1,5))
+    par(mar = c(5,5,3,5))
     plot(data.ok$seqN, data.ok$d18O_diff.Z, 
-         pch=21, bg = "light blue",
-         ylab = "", xlab = "Sequence number")
+         pch=21, bg = "light blue", ylab = "", 
+         xlab = "Sequence number", main = "Outlier Plot")
     if(!is.null(oi.o)){
       points(data.ok$seqN[oi.o], data.ok$d18O_diff.Z[oi.o], pch=21,
            bg = "black", col = "light blue")
     }
-    mtext("d18O", 2, 3, col = "light blue")
+    mtext(expression(delta^{18}*"O"), 2, 3, col = "light blue")
     abline(3.5, 0, lty=2, col = "light blue")
     abline(-3.5, 0, lty=2, col = "light blue")
     par(new = TRUE)
@@ -367,7 +354,7 @@ outlier = function(data, oi.in){
            bg = "black", col = "red")
     }
     axis(4)
-    mtext("d2H", 4, 3, col = "red")
+    mtext(expression(delta^{2}*"H"), 4, 3, col = "red")
     abline(3.5, 0, lty=2, col = "red")
     abline(-3.5, 0, lty=2, col = "red")
     
