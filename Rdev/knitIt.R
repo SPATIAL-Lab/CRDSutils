@@ -10,6 +10,8 @@ knit: (function(inputFile, encoding){rmarkdown::render(inputFile, encoding = enc
 
 setHook("knit", 
         function(inputFile){
-          rmarkdown::render(
-            inputFile, 
-            params = "ask")})
+          cfg = CRDSutils::init()
+          rmarkdown::render(inputFile, params = "ask",
+                            output_file = file.path(
+                              cfg$outPath, "/", instrument, "_", rundate, ".html"))
+        })

@@ -2,14 +2,6 @@
 title: "CRDS HO Data Reduction"
 author: "`r CRDSutils::init()$user`"
 date: "`r format(Sys.Date(), '%d %b %Y')`"
-output:
-  html_document: 
-    df_print: paged
-    number_sections: yes
-    toc: yes
-    toc_float: true
-    toc_depth: 3
-    code_folding: show
 params:
   runDate:
     label: "Run Date (YYYY-MM-DD)"
@@ -19,13 +11,14 @@ params:
     value: hids2046
     input: select
     choices: [hids2046, hids2052, hids2053]
+output:
+  html_document: 
+    df_print: paged
+    number_sections: yes
+    code_folding: show
 editor_options:
   chunk_output_type: console
 ---
-
-# Set Up
-
-Load functions.
 
 ```{r load, include = FALSE}
 library(CRDSutils)

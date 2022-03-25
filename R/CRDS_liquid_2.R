@@ -2,11 +2,39 @@
 
 #Write configuration file
 write_config = function(){
-  fp = readline("File path containing CRDS data directories: \n")
-  rf = readline("Reference file with full path: \n")
-  op = readline("File path for excel output: \n")
-  usr = readline("Analyst email: \n")
-  
+  flag = file.exists("~/.crds.config")
+  if(flag){
+    cfg = init()
+    if(hasName(cfg, "dataPath")){
+      fp = readline(paste0("File path is ", cfg$dataPath, ", replace or <enter> \n"))
+      if(nchar(fp) == 0){fp = cfg$dataPath}
+    } else{
+      fp = readline("File path containing CRDS data directories: \n")
+    }
+    if(hasName(cfg, "refFile")){
+      rf = readline(paste0("\nReference file path is ", cfg$refFile, ", replace or <enter> \n"))
+      if(nchar(rf) == 0){rf = cfg$refFile}
+    } else{
+      rf = readline("\nReference file with full path: \n")
+    }
+    if(hasName(cfg, "outPath")){
+      op = readline(paste0("\nOutput path is ", cfg$outPath, ", replace or <enter> \n"))
+      if(nchar(op) == 0){op = cfg$outPath}
+    } else{
+      op = readline("\nFile path for excel output: \n")
+    }
+    if(hasName(cfg, "user")){
+      usr = readline(paste0("\nAnalyst email is ", cfg$user, ", replace or <enter> \n"))
+      if(nchar(usr) == 0){usr = cfg$user}
+    } else{
+      usr = readline("\nAnalyst email: \n")
+    }
+  } else{
+    fp = readline("File path containing CRDS data directories: \n")
+    rf = readline("\nReference file with full path: \n")
+    op = readline("\nFile path for excel output: \n")
+    usr = readline("\nAnalyst email: \n")
+  }
   
   cf = file("~/.crds.config", open = "wt")
   writeLines(paste0("dataPath=", fp), cf)
@@ -341,7 +369,7 @@ review_data <- function(data){
   plot_gmwl(print.me$samples.summary)
   ## runs plot.gmwl function
   
-  print(list(qa = print.me$qa,
+  return(list(qa = print.me$qa,
            data = print.me$samples.summary))
 }
 
