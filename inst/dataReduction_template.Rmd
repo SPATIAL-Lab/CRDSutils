@@ -48,8 +48,8 @@ corrected = process_data(files)
 ```{r review, results = "alias", echo = FALSE}
 library(knitr)
 rd = review_data(corrected)
-kable(rd$qa, caption = "QA Results")
-kable(rd$data, caption = "Data Summary")
+kable(rd$qa, caption = "QA Results", row.names = FALSE)
+kable(rd$data, caption = "Data Summary", row.names = FALSE)
 ```
 
 ```{r write, include=FALSE}
