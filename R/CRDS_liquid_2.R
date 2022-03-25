@@ -6,28 +6,36 @@ write_config = function(){
   if(flag){
     cfg = init()
     if(hasName(cfg, "dataPath")){
-      fp = readline(paste0("File path is ", cfg$dataPath, ", replace or <enter> \n"))
+      cat("File path is:\n")
+      cat(paste(cfg$dataPath, "\n"))
+      fp = readline("Replace or <enter> \n")
       if(nchar(fp) == 0){fp = cfg$dataPath}
     } else{
       fp = readline("File path containing CRDS data directories: \n")
     }
     if(hasName(cfg, "refFile")){
-      rf = readline(paste0("\nReference file path is ", cfg$refFile, ", replace or <enter> \n"))
+      cat("Reference file path is:\n")
+      cat(paste(cfg$refFile, "\n"))
+      rf = readline("Replace or <enter> \n")
       if(nchar(rf) == 0){rf = cfg$refFile}
     } else{
-      rf = readline("\nReference file with full path: \n")
+      rf = readline("Reference file with full path: \n")
     }
     if(hasName(cfg, "outPath")){
-      op = readline(paste0("\nOutput path is ", cfg$outPath, ", replace or <enter> \n"))
+      cat("Output path is:\n")
+      cat(paste(cfg$outPath, "\n"))
+      op = readline("Replace or <enter> \n")
       if(nchar(op) == 0){op = cfg$outPath}
     } else{
-      op = readline("\nFile path for excel output: \n")
+      op = readline("File path for excel output: \n")
     }
     if(hasName(cfg, "user")){
-      usr = readline(paste0("\nAnalyst email is ", cfg$user, ", replace or <enter> \n"))
+      cat("Analyst email is:\n")
+      cat(paste0(cfg$user, "\n"))
+      usr = readline("Replace or <enter> \n")
       if(nchar(usr) == 0){usr = cfg$user}
     } else{
-      usr = readline("\nAnalyst email: \n")
+      usr = readline("Analyst email: \n")
     }
   } else{
     fp = readline("File path containing CRDS data directories: \n")
