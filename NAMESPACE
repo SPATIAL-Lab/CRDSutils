@@ -11,7 +11,7 @@ importFrom("graphics", "abline", "axis", "lines", "mtext", "par",
                "points")
 importFrom("stats", "aggregate", "complete.cases", "lm", "optim",
                "predict", "rnorm", "sd", "smooth.spline", "var")
-importFrom("utils", "read.csv", "tail")
+importFrom("utils", "read.csv", "tail", "browseURL", "hasName")
 importFrom(rmarkdown, render)
 importFrom(RODBC, odbcConnect, sqlQuery)
 importFrom(openxlsx, createWorkbook, addWorksheet, writeData, saveWorkbook)

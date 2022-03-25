@@ -1,6 +1,7 @@
 reduce = function(instrument, runDate){
   cfg = CRDSutils::init()
-  inputFile = paste0(cfg$outPath, "/dataReduction_template.Rmd")
+  inputFile = system.file("dataReduction_template.RMD", 
+                          package = "CRDSutils")
   outputFile = file.path(cfg$outPath, 
                           paste0(instrument, "_",
                                  runDate, ".html"))

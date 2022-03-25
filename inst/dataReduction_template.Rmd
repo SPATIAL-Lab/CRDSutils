@@ -15,7 +15,6 @@ output:
   html_document: 
     df_print: paged
     number_sections: yes
-    code_folding: show
 editor_options:
   chunk_output_type: console
 ---
