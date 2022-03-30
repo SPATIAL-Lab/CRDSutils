@@ -24,10 +24,11 @@ library(CRDSutils)
 ```
 
 ```{r, echo = FALSE}
-cat(paste("Instrument =", instrument))
-cat(paste("Run Date =", runDate))
+cat("Instrument =", instrument)
+cat("Run Date =", runDate)
 pv = packageVersion("CRDSutils")
-cat(paste("CRDSutils Version =", pv))
+cat(paste("CRDSutils Version =", pv)
+)
 ```
 
 # Check Files
@@ -52,7 +53,13 @@ kable(rd$qa, caption = "QA Results", row.names = FALSE)
 kable(rd$data, caption = "Data Summary", row.names = FALSE)
 ```
 
-```{r write, include=FALSE}
-#db(corrected, analyst)
+# Export to DB
+
+```{r db, echo = FALSE}
+db(corrected)
+```
+
+
+```{r excel, include=FALSE}
 excel(files, corrected)
 ```

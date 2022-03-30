@@ -1,8 +1,13 @@
 #Push sample data and parameter values to wiDB
-db <- function(data, analyst){
+db <- function(data){
   ## data is a list of dataframes such as that created by the 
   ## process.data function that includes qa.report & samples.summary
 
+  cfg = init()
+  if(!(cfg$db %in% names(odbcDataSources("system")))){
+    return(paste("Database", cfg$db, "not available"))
+  }
+  
   qa <- data$qa.report
   ## stores the qa.report table
   
@@ -14,6 +19,7 @@ db <- function(data, analyst){
   ## stores the run date
   
   channel = odbcConnect("WIDB")
+  on.exit(close(channel))
   ## creates a connection to the database, must be loaded as ODBC source w/ this name
 
   existing <- sqlQuery(channel, paste0("SELECT * FROM Parameters_table 
@@ -23,15 +29,13 @@ db <- function(data, analyst){
   ## run date if it exists
 
   if(nrow(existing)>0){
-    vdupes = readline(prompt="Duplicate run entry found in database. View (Y/N)?")
-    if(vdupes!="N") print(existing)
-    ddupes = readline(prompt="Delete (Y/N)?")
-    if(ddupes=="Y"){ 
-      sqlQuery(channel, paste0("DELETE FROM Parameters_table WHERE Instrument = '", 
+    cat("Existing parameter set in database will be overwritten:\n")
+    print(existing)
+    cat("\n")
+    sqlQuery(channel, paste0("DELETE FROM Parameters_table WHERE Instrument = '", 
                                Instrument, "' AND Run_date = '", Run_date, "'"))
-    } else {stop("data already present in database, no new data imported")}
   }
-  ## finds duplicates in the existing table and prompts for user prefered action 
+  ## finds duplicates in the existing table and reports 
   
   n1 = sqlQuery(channel, "SELECT COUNT(*) FROM Parameters_table")
   sqlQuery(channel,paste0("INSERT INTO Parameters_table(Instrument,
@@ -50,10 +54,11 @@ db <- function(data, analyst){
                         qa$value[17], ",", qa$value[18],",",
                         qa$value[19], ",", qa$value[20], ",",
                         qa$value[21], ",", qa$value[22], ", '",
-                        analyst, "')"))
+                        cfg$user, "')"))
   ## writes data to the Parameters_table in the database
   n2 = sqlQuery(channel, "SELECT COUNT(*) FROM Parameters_table")
-  print(paste(n2-n1, "parameter set imported"))
+  nNew = as.integer(n2 - n1)
+  cat(nNew, "parameter set imported\n")
   
   s <- data$samples.summary
   ## stores the samples.summary table
@@ -76,40 +81,45 @@ db <- function(data, analyst){
                WHERE WI_Analysis_Instrument = '", Instrument, "' AND 
                WI_Analysis_Date = '", Run_date,"' AND Sample_ID = '", s$Sample_ID[i], "'")))
   }
-  if(nrow(existing)>0){
-    vdupes = readline(prompt="Duplicate sample data found in database. View (Y/N)?")
-    if(vdupes!="N") print(existing)
-    ddupes = readline(prompt="Delete (Y/N)?")
-    if(ddupes=="Y"){ 
-      for(i in 1:nrow(existing)){
-        sqlQuery(channel, paste0("DELETE FROM Water_Isotope_Data WHERE WI_Analysis_ID = '", existing$WI_Analysis_ID[i], "'"))
-      }
-    } else {stop("data already present in database, no new data imported")}
+  if(nrow(existing) > 0){
+    cat("Existing data in database will be overwritten:\n")
+    print(existing)
+    cat("\n")
+    for(i in 1:nrow(existing)){
+      sqlQuery(channel, paste0("DELETE FROM Water_Isotope_Data WHERE 
+                               WI_Analysis_ID = '", existing$WI_Analysis_ID[i], 
+                               "'"))
+    }
   }
   ## creates a table with data that matches the instrument, run date,
   ## and sample ID if it exists
 
-  wids = sqlQuery(channel, "SELECT WI_Analysis_ID FROM Water_Isotope_Data WHERE WI_Analysis_ID LIKE 'SPATIAL%'")
-  wid_nums = as.integer(substring(wids$WI_Analysis_ID, regexpr("_", wids$WI_Analysis_ID)+1))
+  wids = sqlQuery(channel, "SELECT WI_Analysis_ID FROM Water_Isotope_Data WHERE 
+                  WI_Analysis_ID LIKE 'SPATIAL%'")
+  wid_nums = as.integer(substring(wids$WI_Analysis_ID, 
+                                  regexpr("_", wids$WI_Analysis_ID)+1))
   widmax = max(wid_nums)
   ## retrieves analysis IDs for SPATIAL samples and finds maximum value
 
   n1 = sqlQuery(channel, "SELECT COUNT(*) FROM Water_Isotope_Data")
   for(i in 1:nrow(s)){
-    qstring = paste0("INSERT INTO Water_Isotope_Data (WI_Analysis_ID, Sample_ID, d2H, d18O, d2H_Analytical_SD, d18O_Analytical_SD, WI_Analysis_Date, WI_Analysis_Source, WI_Analysis_Instrument, WI_Analysis_Ignore)
-           VALUES('SPATIAL_", widmax+i, "', '", s$Sample_ID[i], "', ", s$d2H_dc[i], ", ", s$d18O_dc[i], ", ", s$d2H_sd[i], ", ", s$d18O_sd[i], ", '", Run_date, "', 'SPATIAL','",  Instrument, "', ", s$Ignore[i], ")")
+    qstring = paste0("INSERT INTO Water_Isotope_Data (WI_Analysis_ID, Sample_ID, 
+    d2H, d18O, d2H_Analytical_SD, d18O_Analytical_SD, WI_Analysis_Date, 
+    WI_Analysis_Source, WI_Analysis_Instrument, WI_Analysis_Ignore)
+           VALUES('SPATIAL_", widmax+i, "', '", s$Sample_ID[i], "', ", 
+                     s$d2H_cm[i], ", ", s$d18O_cm[i], ", ", s$d2H_csd[i], ", ", 
+                     s$d18O_csd[i], ", '", Run_date, "', 'SPATIAL','",  
+                     Instrument, "', ", s$Ignore[i], ")")
     qstring = gsub(",NaN,", ",NULL,", qstring)
     qstring = gsub(",NA,", ",NULL,", qstring)
     sqlQuery(channel, qstring)
   }
   n2 = sqlQuery(channel, "SELECT COUNT(*) FROM Water_Isotope_Data")
-  print(paste(nrow(s), "samples in file"))
-  print(paste(n2-n1, "samples imported"))
+  cat(nrow(s), "samples in file\n")
+  nNew = as.integer(n2 - n1)
+  cat(nNew, "samples imported\n")  
   ## writes data to the DB table, analysis ID is autogenerated with prefix and 
   ## incremented integer suffix 
-
-close(channel)
-## closes the connection to the database
 }
 
 #Write tables to tabs in xlsx file for backup/archive

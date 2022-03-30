@@ -35,11 +35,20 @@ write_config = function(){
     } else{
       usr = readline("Analyst email: \n")
     }
+    if(hasName(cfg, "db")){
+      cat("System database name is:\n")
+      cat(paste0(cfg$db, "\n"))
+      db = readline("Replace or <enter> \n")
+      if(nchar(db) == 0){db = cfg$db}
+    } else{
+      db = readline("System database name: \n")
+    }
   } else{
     fp = readline("File path containing CRDS data directories: \n")
     rf = readline("\nReference file with full path: \n")
     op = readline("\nFile path for excel output: \n")
     usr = readline("\nAnalyst email: \n")
+    db = readline("\nSystem database name: \n")
   }
   
   cf = file("~/.crds.config", open = "wt")
@@ -47,5 +56,6 @@ write_config = function(){
   writeLines(paste0("refFile=", rf), cf)
   writeLines(paste0("outPath=", op), cf)
   writeLines(paste0("user=", usr), cf)
+  writeLines(paste0("db=", db), cf)
   close(cf)
 }
