@@ -226,7 +226,7 @@ drift.reg <- function(data, refs, oi, genPlot = TRUE){
   # set degrees of freedom for spline
   sdf = ceiling(nrow(data.slrm)/2)
   
-  if(sdf == 1){
+  if(nrow(data.slrm) < 4){
     ## spline fits to slrm port averages, hacked for small runs
     o = smooth.spline(seq(1:100), rep(mean(data.slrm$d18O_mc), 100), 
                       df = sdf)
