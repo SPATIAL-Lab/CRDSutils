@@ -21,5 +21,6 @@ In addition to package installation, you will need to set up several files and d
 }
 \item{refFile: A .csv file accessible on the system that contains the IDs and known values for reference waters and values for QA parameters.}
 \item{outPath directory: A local system folder to which all .html reports and .xlsx data files will be written.}
+\item{neonPath directory: A local system folder from/to which files containing NEON sample/receipt information will be read/written. Only required for SIRFER lab contract work using \dQuote{neon*} functions.}
 }
 }

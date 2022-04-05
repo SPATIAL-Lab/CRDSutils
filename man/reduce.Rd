@@ -7,7 +7,7 @@ Reduce CRDS Data Files
 }
 
 \description{
-Runs all steps in data reduction and produces reports.
+Runs all steps in data reduction and produces data reduction reports.
 }
 
 \usage{

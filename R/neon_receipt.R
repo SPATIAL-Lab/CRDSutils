@@ -1,17 +1,13 @@
-#####################################################################
-####              NEON Shipping Database function		             ####
-####      	  Takes NEON spreadsheet (after being updated)       ####
-####             and puts relevant fields into WaterDB           ####
-#####################################################################
+neon_receipt = function(fname){
 
-neon_shipment <- function(fname){
-  library(RODBC) #loads required library
-  library(openxlsx) #loads required library
+  cfg = init()
   
   #create channel with filepath to the database
-  channel = odbcConnect("WIDB")
+  channel = odbcConnect(cfg$db)
+  on.exit(close(channel))
   
   #read in relevant sheet from NEON spreadsheet
+  sfile = file.path(cfg$neonPath, fname)
   samples <- read.csv(fname, stringsAsFactors = FALSE) 
   
   #subset df to include only rows with sample codes (drops rows with no data)
@@ -41,12 +37,16 @@ neon_shipment <- function(fname){
   find.dupes(samples$sampleID, ns, channel)
   
   #add received date to samples
-  today = as.Date(date(), "%a %b %d %H:%M:%S %Y")
-  samples$shipmentReceivedDate = rep(today, ns)
+  rd = readline("Received date (YYYY-MM-DD) or <enter> for today: ")
+  if(nchar(rd) == 0){
+    rd = as.Date(date(), "%a %b %d %H:%M:%S %Y")
+  } else{
+    rd = as.Date(rd)
+  }
+  samples$shipmentReceivedDate = rep(rd, ns)
   
   #get and add analyst name and job number
-  rbname = readline("Your email address: ")
-  samples$receivedBy = rep(rbname, ns)
+  samples$receivedBy = rep(cfg$user, ns)
   jnum = readline("Job number: ")
   samples$jobNumber = rep(jnum, ns)
   
@@ -62,7 +62,7 @@ neon_shipment <- function(fname){
   #set some terms lists and error messages
   badCode = "Barcode not found, enter sample by hand later\n"
   
-  #scan samples and collect recipt info
+  #scan samples and collect receipt info
   repeat{
     sbc = readline("Scan sample or enter if done: ")
     if(sbc == "") break
@@ -88,8 +88,8 @@ neon_shipment <- function(fname){
       samples$sampleClass[ns+i] = samples$sampleClass[ns]
       samples$sampleID[ns+i] = tok
       samples$unknownSamples[ns+i] = tok
-      samples$shipmentReceivedDate[ns+i] = today
-      samples$receivedBy[ns+i] = rbname
+      samples$shipmentReceivedDate[ns+i] = rd
+      samples$receivedBy[ns+i] = cfg$user
       samples$jobNumber[ns+i] = jnum
       
       tok = "Y"
@@ -108,7 +108,6 @@ neon_shipment <- function(fname){
   
   #Loop insert
   for (i in 1:nrow(samples)){
-    
     #Paste together text for insert
     sql1 = paste0("INSERT INTO NEON_shipping (sampleID, ",
                                               "shipmentID, ",
@@ -151,9 +150,6 @@ neon_shipment <- function(fname){
   print(paste(nrow(samples), "samples in file"))
   print(paste(n2-n1, "samples imported"))
   
-  #close the connection to the database
-  odbcClose(channel)   
-  
   #Write receipt form
   receipt = data.frame("shipmentID" = samples$shipmentID, 
                        "shipmentReceivedDate" = samples$shipmentReceivedDate, 
@@ -174,7 +170,7 @@ neon_shipment <- function(fname){
   receipt$shipmentReceivedDate = gsub("-", "", receipt$shipmentReceivedDate)
   
   #output
-  fname = paste0("Bowen_Lab/Data_reports/NEON/Shipping/receipt_form_", 
+  fname = paste0(cfg$neonPath, "/receipt_form_", 
                  receipt$shipmentID[1], ".csv")
   write.csv(receipt, fname, row.names = FALSE, na = "")
   

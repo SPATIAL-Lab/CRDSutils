@@ -10,9 +10,7 @@ Description: Data processing routines developed by/for the SPATIAL facility
 Imports: RODBC, openxlsx, rmarkdown
 Depends: R (>= 3.5)
 Suggests: 
-    knitr,
-    testthat (>= 3.0.0),
-    covr
+    knitr
 VignetteBuilder: knitr
 License: GPL-3
 Language: en-US
