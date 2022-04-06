@@ -170,7 +170,7 @@ neon_receipt = function(fname){
   receipt$shipmentReceivedDate = gsub("-", "", receipt$shipmentReceivedDate)
   
   #output
-  fname = paste0(cfg$neonPath, "/receipt_form_", 
+  fname = paste0(cfg$neonPath, "/Processed/receipt_form_", 
                  receipt$shipmentID[1], ".csv")
   write.csv(receipt, fname, row.names = FALSE, na = "")
   

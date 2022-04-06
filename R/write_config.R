@@ -19,29 +19,13 @@ write_config = function(){
     } else{
       rf = readline("Reference file with full path: \n")
     }
-    if(hasName(cfg, "outPath")){
-      cat("Output path is:\n")
-      cat(paste(cfg$outPath, "\n"))
-      op = readline("Replace or <enter> \n")
-      if(nchar(op) == 0){op = cfg$outPath}
+    if(hasName(cfg, "ioPath")){
+      cat("Input/output path is:\n")
+      cat(paste(cfg$ioPath, "\n"))
+      iop = readline("Replace or <enter> \n")
+      if(nchar(iop) == 0){iop = cfg$ioPath}
     } else{
-      op = readline("File path for excel output: \n")
-    }
-    if(hasName(cfg, "neonPath")){
-      cat("NEON shipping file path is:\n")
-      cat(paste(cfg$neonPath, "\n"))
-      neon = readline("Replace or <enter> \n")
-      if(nchar(neon) == 0){neon = cfg$neonPath}
-    } else{
-      neon = readline("Path for NEON shipping files: \n")
-    }
-    if(hasName(cfg, "reportPath")){
-      cat("Data report file path is:\n")
-      cat(paste(cfg$reportPath, "\n"))
-      rept = readline("Replace or <enter> \n")
-      if(nchar(rept) == 0){neon = cfg$reportPath}
-    } else{
-      rept = readline("Path for data report files: \n")
+      iop = readline("File path for file input/output: \n")
     }
     if(hasName(cfg, "user")){
       cat("Analyst name is:\n")
@@ -62,9 +46,7 @@ write_config = function(){
   } else{
     fp = readline("File path containing CRDS data directories: \n")
     rf = readline("\nReference file with full path: \n")
-    op = readline("\nFile path for excel output: \n")
-    neon = readline("\nPath for NEON shipping files: \n")
-    rept = readline("\nPath for data report files: \n")
+    iop = readline("\nFile path for file input/output: \n")
     usr = readline("\nAnalyst name: \n")
     db = readline("\nSystem database name: \n")
   }
@@ -72,9 +54,10 @@ write_config = function(){
   cf = file("~/.crds.config", open = "wt")
   writeLines(paste0("dataPath=", fp), cf)
   writeLines(paste0("refFile=", rf), cf)
-  writeLines(paste0("outPath=", op), cf)
-  writeLines(paste0("neonPath=", neon), cf)
-  writeLines(paste0("reportPath=", rept), cf)
+  writeLines(paste0("ioPath=", iop), cf)
+  writeLines(paste0("outPath=", file.path(iop, "CRDS_liquidH2O")), cf)
+  writeLines(paste0("neonPath=", file.path(iop, "NEON_shipping")), cf)
+  writeLines(paste0("reportPath=", file.path(iop, "Data_reports")), cf)
   writeLines(paste0("user=", usr), cf)
   writeLines(paste0("db=", db), cf)
   close(cf)

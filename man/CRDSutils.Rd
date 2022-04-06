@@ -20,7 +20,12 @@ In addition to package installation, you will need to set up several files and d
 \item{Each instrument directory must also contain a subdirectory \dQuote{dataPath/instrument/runfiles} with appropriately formatted .csv files containing the sample IDs.}
 }
 \item{refFile: A .csv file accessible on the system that contains the IDs and known values for reference waters and values for QA parameters.}
-\item{outPath directory: A local system folder to which all .html reports and .xlsx data files will be written.}
-\item{neonPath directory: A local system folder from/to which files containing NEON sample/receipt information will be read/written. Only required for SIRFER lab contract work using \dQuote{neon*} functions.}
+\item{ioPath directory: A local system folder within which all reports will be written and read. It should contain the following subdirectories:
+\enumerate{
+\item{CRDS_liquidH2O: .html and .xlsx data report files will be written and read from this folder.}
+\item{Data_reports: Formatted data reports for analytical jobs will be written here into subdirectories with names matching the \code{style} argument of \code{\link{report}}.}
+\item{NEON_shipping: Contains NEON shipping manifest files. Processed receipt files will be output to a subdirectory named \dQuote{Processed}. Only required for SIRFER lab contract work using \dQuote{neon*} functions.}
+}
+}
 }
 }

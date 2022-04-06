@@ -70,6 +70,10 @@ report = function(job, firstDate, style = "sirfer", runs = FALSE,
   data = sqlQuery(channel, paste0("Select * from Water_Isotope_Data 
              WHERE  Sample_ID LIKE '", job, "%' AND WI_Analysis_Date >= '", firstDate,"'"))
   ## stores a table of the data for the run
+  
+  if(nrow(data) == 0){
+    stop("No data for these criteria")
+  }
 
   data$run = paste(data$WI_Analysis_Instrument, data$WI_Analysis_Date)
   ## creates a column that combines Instrument & Run date in data
@@ -90,7 +94,9 @@ report = function(job, firstDate, style = "sirfer", runs = FALSE,
   data$Sample_ID = substring(data$Sample_ID, regexpr("_", data$Sample_ID)+1)
   ## removes job number prefix from Sample IDs
   
-  if(ignore == TRUE){ data = data[data$WI_Analysis_Ignore == 0,]}
+  if(ignore == TRUE){ 
+    data = data[data$WI_Analysis_Ignore == 0,]
+  }
   ## if ignore = TRUE, excludes data where Ignore = 1
   
   ###############################################################
@@ -120,12 +126,7 @@ report = function(job, firstDate, style = "sirfer", runs = FALSE,
     output_file = gsub("/", "_", output_file)
     ## replaces any foward slashes with underscores
   
-    if(style == "spatial"){ 
-      output_file = file.path(cfg$reportPath, output_file)
-    } else if(style == "sirfer"){ 
-      output_file = file.path(cfg$reportPath, "SIRFER_SPATIAL",
-                          output_file)
-    } 
+    output_file = file.path(cfg$reportPath, style, output_file)
     ## creates output_file name with full filepath for the
     ## given report type
     
@@ -134,9 +135,9 @@ report = function(job, firstDate, style = "sirfer", runs = FALSE,
     ## checks for and removes existing files with same name
     
   } else{
-    output_file_1 = file.path(cfg$reportPath, "NEON", paste0("WaterIsotope_",
+    output_file_1 = file.path(cfg$reportPath, style, paste0("WaterIsotope_",
                           job, "_", sdate,".csv"))
-    output_file_2 = file.path(cfg$reportPath, "NEON", paste0("WaterIsotope_",
+    output_file_2 = file.path(cfg$reportPath, style, paste0("WaterIsotope_",
                          job, "_", sdate,"_QA.csv"))
     if(file.exists(output_file_1)){file.remove(output_file_1)} 
     if(file.exists(output_file_2)){file.remove(output_file_2)}
@@ -358,7 +359,7 @@ report = function(job, firstDate, style = "sirfer", runs = FALSE,
     data_n = merge(data_n, qa, by.x = c("WI_Analysis_Instrument", "WI_Analysis_Date"), 
                    by.y = c("Instrument", "Run_date"))
     
-    data_n = data.frame(sampleID = data_n$Sample_ID,
+    data_n = data.frame(sampleCode = data_n$Sample_ID, sampleID = rep(""),
                          instrumentSN = data_n$WI_Analysis_Instrument,
                          dateProcessed = data_n$WI_Analysis_Date,
                          d18O = data_n$d18O, d2H = data_n$d2H,
