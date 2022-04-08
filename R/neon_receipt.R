@@ -8,7 +8,7 @@ neon_receipt = function(fname){
   
   #read in relevant sheet from NEON spreadsheet
   sfile = file.path(cfg$neonPath, fname)
-  samples <- read.csv(fname, stringsAsFactors = FALSE) 
+  samples <- read.csv(sfile, stringsAsFactors = FALSE) 
   
   #subset df to include only rows with sample codes (drops rows with no data)
   samples <- samples[!is.na(samples$sampleCode),] 
