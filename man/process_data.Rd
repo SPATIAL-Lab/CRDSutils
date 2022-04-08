@@ -7,7 +7,7 @@ Process CRDS Data
 }
 
 \description{
-Process data, including outlier detection, memory correction, drift correction, and calibration to primary reference waters. Propagates uncertainty and generates plots for outlier dectection and drift.
+Process data, including outlier detection, memory correction, drift correction, and calibration to primary reference waters. Propagates uncertainty and generates plots for outlier detection and drift.
 }
 
 \usage{

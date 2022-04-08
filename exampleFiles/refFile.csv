@@ -1,0 +1,13 @@
+parameter,ID,min,max,d18O_known,d2H_known,d18O_sd,d2H_sd
+slrm_O_range,,-10.29,-10.03,,,,
+slrm_H_range,,-73.35,-71.25,,,,
+slrm_O_sd,,,0.12,,,,
+slrm_H_sd,,,0.5,,,,
+Intercept,,-5,5,,,,
+Slope,,0.96,1.04,,,,
+Drift,,,0.033333333,,,,
+sample_H_sd,,,0.75,,,,
+sample_O_sd,,,0.2,,,,
+plrm1,PZ,,,1.93,18.1,0.07,0.6
+plrm2,UT2,,,-15.84,-119.1,0.05,0.5
+slrm,EV,,,-10.16,-72.3,0.06,0.55

@@ -100,12 +100,6 @@ data.mod <- function(data.file, ids.file){
 
 ## Generates memory-correction terms for d18O & d2H 
 mc.terms <- function(data, mem, oi){ 
-  ## data is the dataframe created using the data.mod function
-  ## ports is a vector with the port numbers to be used to calculate
-  ## the memory-correction terms
-  ## injs is a vector with the injections to calculate 
-  ## memory-correction terms for
-  
   #ensure sorting by seqN
   data = data[order(data$seqN),]
   

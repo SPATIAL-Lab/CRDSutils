@@ -5,7 +5,8 @@ db <- function(data){
 
   cfg = init()
   if(!(cfg$db %in% names(odbcDataSources("system")))){
-    return(paste("Database", cfg$db, "not available"))
+    print(paste("Database", cfg$db, "not available, no data exported"))
+    return()
   }
   
   qa <- data$qa.report
@@ -130,6 +131,10 @@ excel <- function(files, data){
   ## data is a list of dataframes such as that created by the 
   ## process.crds function that includes 6 tables
   cfg = init()
+  
+  if(!dir.exists(cfg$outPath)){
+    dir.create(cfg$outPath)
+  }
 
   chunks = unlist(strsplit(files$ids.file, "/"))
   output_file = paste0(cfg$outPath, "/", chunks[length(chunks)])

@@ -1,4 +1,4 @@
-report = function(job, firstDate, style = "sirfer", runs = FALSE, 
+report = function(job, firstDate = "2010-01-01", style = "sirfer", runs = FALSE, 
                     ignore = TRUE, plot = TRUE){
 
   cfg = init()
@@ -119,6 +119,11 @@ report = function(job, firstDate, style = "sirfer", runs = FALSE,
   sdate2 = sub("20","",sdate)
   ## removes 20 from the date
   
+  if(!dir.exists(file.path(cfg$reportPath, style))){
+    dir.create(file.path(cfg$reportPath, style))
+  }
+  ## check for output directory and create if necessary
+  
   if (style != "neon"){
     output_file = paste0(sdate2, "_", job, ".xlsx")
     ## pastes together the date with the job and the file extension
@@ -189,7 +194,7 @@ report = function(job, firstDate, style = "sirfer", runs = FALSE,
     qa.head[2, ] = c("ID", "d2H (permil)", "d18O (permil)")
     
     qa = data.frame(ID = rep("", 6), d2H = numeric(6), d18O = numeric(6))
-    qa[1, 1] = "PLRM-1, 2-point calibration against VSMOW and GISP"
+    qa[1, 1] = "PLRM-1, 2-point calibration against VSMOW2 and GISP"
     qa[1, 2:3] = rep(NA)
     qa[2, 1] = "Calibrated value"
     qa[2, 2] = refs$refs["plrm1",]$h.known
@@ -198,7 +203,7 @@ report = function(job, firstDate, style = "sirfer", runs = FALSE,
     qa[3, 2] = refs$refs["plrm1",]$h.known.sd
     qa[3, 3] = refs$refs["plrm1",]$o.known.sd
     
-    qa[4, 1] = "PLRM-2, 2-point calibration against VSMOW and GISP"
+    qa[4, 1] = "PLRM-2, 2-point calibration against VSMOW2 and GISP"
     qa[4, 2:3] = rep(NA)
     qa[5, 1] = "Calibrated value"
     qa[5, 2] = refs$refs["plrm2",]$h.known
