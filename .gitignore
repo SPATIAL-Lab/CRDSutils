@@ -2,7 +2,3 @@
 .Rhistory
 .RData
 .Ruserdata
-.crds.config
-
-files/**/*
-out/**/*
