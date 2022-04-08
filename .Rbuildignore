@@ -1,0 +1,13 @@
+^Rmarkdown$
+^docs$
+^data-raw$
+^cran-comments\.md$
+^CRAN-RELEASE$
+^.*\.Rproj$
+^\.Rproj\.user$
+^codecov\.yml$
+^doc$
+^Meta$
+^Rdev$
+^.github$
+^exampleFiles$

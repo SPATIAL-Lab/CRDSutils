@@ -1,0 +1,65 @@
+---
+title: "CRDS HO Data Reduction"
+author: "`r CRDSutils::init()$user`"
+date: "`r format(Sys.Date(), '%d %b %Y')`"
+params:
+  runDate:
+    label: "Run Date (YYYY-MM-DD)"
+    value: 2022-01-01
+  instrument:
+    label: "CRDS Instrument"
+    value: hids2046
+    input: select
+    choices: [hids2046, hids2052, hids2053]
+output:
+  html_document: 
+    df_print: paged
+    number_sections: yes
+editor_options:
+  chunk_output_type: console
+---
+
+```{r load, include = FALSE}
+library(CRDSutils)
+```
+
+```{r, echo = FALSE}
+cat("Instrument =", instrument)
+cat("Run Date =", runDate)
+pv = packageVersion("CRDSutils")
+cat(paste("CRDSutils Version =", pv)
+)
+```
+
+# Check Files
+
+```{r check, echo = FALSE}
+files = file_lookup(params$instrument, params$runDate)
+files = check_files(files)
+```
+
+# Calibrate Data
+
+```{r calibrate, echo = FALSE}
+corrected = process_data(files)
+```
+
+# Review Data
+
+```{r review, results = "alias", echo = FALSE}
+library(knitr)
+rd = review_data(corrected)
+kable(rd$qa, caption = "QA Results", row.names = FALSE)
+kable(rd$data, caption = "Data Summary", row.names = FALSE)
+```
+
+# Export to DB
+
+```{r db, echo = FALSE}
+db(corrected)
+```
+
+
+```{r excel, include=FALSE}
+excel(files, corrected)
+```
