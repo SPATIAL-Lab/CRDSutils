@@ -21,5 +21,5 @@ neon_receipt(fname)
 \details{
 Requires access to a user configuration file written using \code{\link{write_config}} and properly formatted and structured data files and directories. See package man page \code{\link{CRDSutils}} for details.
 
-Writes output to the \dQuote{neonPath} directory documented in the user's configuration file.
+Writes output to the \dQuote{Processed} folder within the \dQuote{neonPath} directory documented in the user's configuration file.
 }
