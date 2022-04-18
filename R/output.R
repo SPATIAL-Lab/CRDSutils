@@ -19,7 +19,7 @@ db <- function(data){
   Run_date = as.Date(Run_date, format = "%m/%d/%y")
   ## stores the run date
   
-  channel = odbcConnect("WIDB")
+  channel = odbcConnect(cfg$db)
   on.exit(close(channel))
   ## creates a connection to the database, must be loaded as ODBC source w/ this name
 
