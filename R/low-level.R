@@ -195,7 +195,7 @@ mc.corr = function(data, mc, element, oi){
 }
 
 ## Calculates drift spline fit for d18O and d2H
-drift.reg <- function(data, refs, oi, genPlot = TRUE){
+drift.reg <- function(data, refs, oi){
   ## data is the dataframe created using the data.mod function and 
   ## updated using the data.mc function and data.cal function
   ## qa.file is the filename of a csv as described in the cal.reg 
@@ -234,28 +234,30 @@ drift.reg <- function(data, refs, oi, genPlot = TRUE){
                       df = sdf)
   }
   
-
-  #Plot the slrm data and spline fits
-  if(genPlot){
-    par(mar = c(5,5,3,5))
-    plot(data.slrm$seqN, data.slrm$d18O_mc, pch=21, bg = "light blue",
-         ylab = "", xlab = "Sequence number", main = "Drift Correction")
-    mtext(expression(delta^{18}*"O"), 2, 3, col = "light blue")
-    op = predict(o, floor(min(data.slrm$seqN)):
-                          ceiling(max(data.slrm$seqN)))
-    lines(op, col = "light blue")
-    par(new = TRUE)
-    plot(data.slrm$seqN, data.slrm$d2H_mc, pch=21, bg = "red", 
-         axes = FALSE, ylab = "", xlab = "")
-    axis(4)
-    mtext(expression(delta^{2}*"H"), 4, 3, col = "red")
-    hp = predict(h, floor(min(data.slrm$seqN)):
-                   ceiling(max(data.slrm$seqN)))
-    lines(hp, col = "red")
-  }
-  
   #return spline objects
-  return(list(o = o, h = h))
+  return(list(o = o, h = h, data.slrm = data.slrm))
+}
+
+## Plots drift correction
+drift.plot = function(dc){
+  
+  par(mar = c(5,5,3,5))
+  plot(dc$data.slrm$seqN, dc$data.slrm$d18O_mc, pch=21, bg = "light blue",
+       ylab = "", xlab = "Sequence number", main = "Drift Correction")
+  mtext(expression(delta^{18}*"O"), 2, 3, col = "light blue")
+  op = predict(dc$o, floor(min(dc$data.slrm$seqN)):
+                 ceiling(max(dc$data.slrm$seqN)))
+  lines(op, col = "light blue")
+  par(new = TRUE)
+  plot(dc$data.slrm$seqN, dc$data.slrm$d2H_mc, pch=21, bg = "red", 
+       axes = FALSE, ylab = "", xlab = "")
+  axis(4)
+  mtext(expression(delta^{2}*"H"), 4, 3, col = "red")
+  hp = predict(dc$h, floor(min(dc$data.slrm$seqN)):
+                 ceiling(max(dc$data.slrm$seqN)))
+  lines(hp, col = "red")
+
+  return(NULL)
 }
 
 ## Drift-corrects data

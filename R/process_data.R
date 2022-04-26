@@ -29,20 +29,20 @@ process_data <- function(files){
   # remove outliers, and repeat corrections 
   while(mdo){
     ## generate memory-correction terms for the data
-    mem <- mc.terms(df, mem, oi)
+    mem = mc.terms(df, mem, oi)
     
     ## apply memory-correction terms to the d18O data
-    df$d18O_mc <- mc.corr(df, mem$o.mc, "O", oi)
+    df$d18O_mc = mc.corr(df, mem$o.mc, "O", oi)
     
     ## apply memory-correction terms to the d2H data
-    df$d2H_mc <- mc.corr(df, mem$h.mc, "H", oi)
+    df$d2H_mc = mc.corr(df, mem$h.mc, "H", oi)
     
-    ## drift.reg function calculates regression of the  
+    ## drift.reg function calculates spline fit of the  
     ## slrm data against sequence number
-    drift <- drift.reg(df, refs, oi)
+    drift = drift.reg(df, refs, oi)
     
     ## data.dc function applies the drift corrections to the data
-    dc <- data.dc(df,drift)
+    dc = data.dc(df, drift)
     
     ## outlier detections
     oi.in = oi
@@ -51,6 +51,8 @@ process_data <- function(files){
       mdo = FALSE
     }
   }
+  
+  drift.plot(drift)
   
   message("MDO operations completed")
   dc$Outlier = !oi
