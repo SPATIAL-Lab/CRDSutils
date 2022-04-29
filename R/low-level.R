@@ -562,11 +562,11 @@ qa.flag <- function(data, refs){
   data$ignore_sample <- ifelse(
     (data$ignore_run == 1 | 
       complete.cases(data) == FALSE |
-      data$d18O_csd > refs$criteria$sample.o.sd.max |
-      data$d2H_csd > refs$criteria$sample.h.sd.max), 1, 0)
+      data$d18O_sem > refs$criteria$sample.o.sd.max/2 |
+      data$d2H_sem > refs$criteria$sample.h.sd.max/2), 1, 0)
   ## returns a 1 if any of the slrm quality parameters were violated
   ## as determined by the previous ifelse statement and or if the
-  ## sample sd for d18O or d2H exceeds the maximum acceptable values
+  ## sample sem for d18O or d2H exceeds the maximum acceptable values
   
   if(slrm.o > refs$criteria$slrm.o.max | 
      slrm.o < refs$criteria$slrm.o.min){
