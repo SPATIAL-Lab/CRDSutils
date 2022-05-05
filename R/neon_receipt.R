@@ -123,7 +123,7 @@ neon_receipt = function(fname){
                                               "jobNumber) ",
                                               "VALUES (")
     sql2 = paste0("'", 
-                  samples$sampleID[i], "','",                        
+                  samples$sampleCode[i], "','",                        
                   samples$shipmentID[i], "','",
                   samples$domainID[i], "','",
                   samples$collectdate[i], "','",
