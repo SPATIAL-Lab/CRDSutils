@@ -398,9 +398,11 @@ outlier = function(data, oi.in){
   #calculate % missing or outliers
   pbad = (length(oi[oi == FALSE]) - 10) / (length(oi) - 10)
   
-  #if more than 10% of inj are bad or missing warn and exit MDO
-  if(pbad > 0.1){
-    stop("More than 10% of injections are bad, exiting MDO")
+  #if more than 33% of inj are bad or missing warn and exit MDO
+  if(pbad > 0.33){
+    stop("More than 33% of injections are bad, exiting MDO")
+  } else if(pbad > 0.1){
+    warning(paste0(round(pbad*100), "% of injections are bad"))
   }
   
   #Return the oi vector including any additions
