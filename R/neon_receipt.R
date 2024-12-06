@@ -17,7 +17,7 @@ neon_receipt = function(fname){
   ns = nrow(samples)
   
   #format the shipped date field as a date (required to enter into database)
-  if(class(samples$dateShipped)=="character"){
+  if(inherits(samples$dateShipped, "character")){
     yst = gregexpr("201", samples$dateShipped[1])
     if(yst<2){ dform = "%Y-%m-%d" } else {
       dform = "%m/%d/%Y"
@@ -26,7 +26,7 @@ neon_receipt = function(fname){
   }
   
   #format the collection date as a date
-  if(class(samples$collectdate)=="character"){
+  if(inherits(samples$collectdate, "character")){
     yst = gregexpr("201", samples$dateShipped[1])
     if(yst<2){ dform = "%Y-%m-%d" } else {
       dform = "%m/%d/%Y"
