@@ -4,8 +4,7 @@ Title: Picarro L21X0-i Utilities
 Version: 0.2.2
 Authors@R: person("Gabe", "Bowen", email = "gabe.bowen@utah.edu",
                   role = c("aut", "cre"))
-Maintainer: Gabe Bowen <gabe.bowen@utah.edu>
-Description: Data processing routines developed by/for the SPATIAL facility 
+Description: Data processing routines developed by/for the SIRFER facility 
     at the University of Utah.
 Imports: RODBC, openxlsx, rmarkdown
 Depends: R (>= 3.5)
